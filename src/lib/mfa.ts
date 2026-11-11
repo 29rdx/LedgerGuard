@@ -73,3 +73,4 @@ export function getDemoMfaCode(secretBase32: string): { code: string; secondsRem
   const secondsRemaining = 30 - Math.floor((now / 1000) % 30);
   return { code, secondsRemaining };
 }
+

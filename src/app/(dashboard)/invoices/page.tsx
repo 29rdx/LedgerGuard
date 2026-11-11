@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FileSpreadsheet, Plus, CheckCircle, ShieldAlert, FileCheck, RefreshCw } from 'lucide-react';
+import { FileSpreadsheet, Plus, FileCheck, RefreshCw } from 'lucide-react';
 import { FinancialBlotterRow } from '@/types';
 
 export default function InvoicesPage() {
@@ -113,12 +113,12 @@ export default function InvoicesPage() {
             <div className="flex items-start justify-between">
               <div>
                 <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
-                  {inv.invoiceNumber || 'INV-DRAFT'}
+                  {inv.paypalInvoiceId || 'INV-DRAFT'}
                 </span>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mt-2">
-                  {inv.counterpartyName}
+                  {inv.vendorName}
                 </h3>
-                <div className="text-[11px] text-slate-400 font-mono">{inv.counterpartyEmail}</div>
+                <div className="text-[11px] text-slate-400 font-mono">{inv.vendorEmail}</div>
               </div>
 
               <div className="text-right">
@@ -143,13 +143,13 @@ export default function InvoicesPage() {
               <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">
                 Reconciliation Notes
               </div>
-              <p className="leading-relaxed">{inv.auditNotes || inv.escrowConditions}</p>
+              <p className="leading-relaxed">{inv.aiAuditReasoning || inv.deliverableSummary}</p>
             </div>
 
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
               <div className="flex items-center gap-1.5 text-slate-500 font-mono text-[11px]">
                 <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Score: {inv.auditScore ?? 90}/100</span>
+                <span>Risk: {inv.aiRiskScore}/100</span>
               </div>
               <span className="text-[10px] font-mono text-slate-400">
                 {new Date(inv.createdAt).toLocaleDateString()}

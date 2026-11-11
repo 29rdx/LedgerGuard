@@ -6,12 +6,13 @@ export const GENESIS_HASH = '000000000000000000000000000000000000000000000000000
 export function computeBlockHash(
   previousHash: string,
   timestampIso: string,
+  actor: string,
   action: string,
   details: string
 ): string {
   return crypto
     .createHash('sha256')
-    .update(`${previousHash}:${timestampIso}:${action}:${details}`)
+    .update(`${previousHash}:${timestampIso}:${actor}:${action}:${details}`)
     .digest('hex');
 }
 
@@ -31,7 +32,7 @@ export interface HashChainVerificationResult {
 export async function verifyAuditLogChain(organizationId: string): Promise<HashChainVerificationResult> {
   const logs = await prisma.auditLog.findMany({
     where: { organizationId },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { timestamp: 'asc' },
   });
 
   if (logs.length === 0) {
@@ -54,7 +55,7 @@ export async function verifyAuditLogChain(organizationId: string): Promise<HashC
         isValid: false,
         totalLogsChecked: i + 1,
         genesisHash: GENESIS_HASH,
-        latestHash: entry.currentHash,
+        latestHash: entry.recordHash,
         brokenAtId: entry.id,
         details: `Cryptographic chain broken at entry index ${i} (${entry.id}). Previous hash mismatch.`,
       };
@@ -62,30 +63,31 @@ export async function verifyAuditLogChain(organizationId: string): Promise<HashC
 
     const calculatedHash = computeBlockHash(
       entry.previousHash,
-      entry.createdAt.toISOString(),
+      entry.timestamp.toISOString(),
+      entry.actor,
       entry.action,
-      entry.details
+      entry.redactedDetails
     );
 
-    if (calculatedHash !== entry.currentHash) {
+    if (calculatedHash !== entry.recordHash) {
       return {
         isValid: false,
         totalLogsChecked: i + 1,
         genesisHash: GENESIS_HASH,
-        latestHash: entry.currentHash,
+        latestHash: entry.recordHash,
         brokenAtId: entry.id,
-        details: `Tamper detected: Recomputed SHA-256 digest ${calculatedHash} does not match recorded digest ${entry.currentHash}.`,
+        details: `Tamper detected: Recomputed SHA-256 digest ${calculatedHash} does not match recorded digest ${entry.recordHash}.`,
       };
     }
 
-    expectedPrevHash = entry.currentHash;
+    expectedPrevHash = entry.recordHash;
   }
 
   return {
     isValid: true,
     totalLogsChecked: logs.length,
     genesisHash: GENESIS_HASH,
-    latestHash: logs[logs.length - 1].currentHash,
-    details: `All ${logs.length} hash-chained cryptographic blocks verified with 100% integrity.`,
+    latestHash: logs[logs.length - 1].recordHash,
+    details: `All ${logs.length} hash-chained cryptographic blocks verified with 100% mathematical integrity.`,
   };
 }

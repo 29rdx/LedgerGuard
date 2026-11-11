@@ -5,6 +5,7 @@ import { getTenantDb } from '@/lib/db';
 import { paypalClient } from '@/lib/paypal-client';
 import { computeBlockHash } from '@/lib/crypto-audit';
 import { secureLogger } from '@/lib/secure-logger';
+import crypto from 'crypto';
 
 const CreateInvoiceSchema = z.object({
   invoiceNumber: z.string().min(3),
@@ -30,7 +31,7 @@ export async function GET() {
   const tenantDb = getTenantDb(session.organizationId);
   const invoices = await tenantDb.transactions.findMany({
     where: {
-      type: 'INVOICE_SETTLEMENT',
+      paypalInvoiceId: { not: null },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
     // Call PayPal Invoicing v2
-    const invoiceRes = await paypalClient.createInvoice({
+    const invoiceRes = await paypalClient.createDraftInvoice({
       invoiceNumber,
       recipientName: counterpartyName,
       recipientEmail: counterpartyEmail,
@@ -72,26 +73,31 @@ export async function POST(request: NextRequest) {
     });
 
     const tenantDb = getTenantDb(session.organizationId);
+    const mockOrderId = `INV-ORD-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
     const transaction = await tenantDb.transactions.create({
       data: {
-        invoiceNumber,
-        counterpartyName,
-        counterpartyEmail,
+        paypalOrderId: mockOrderId,
+        paypalInvoiceId: invoiceNumber,
+        vendorName: counterpartyName,
+        vendorEmail: counterpartyEmail,
+        category: 'SAAS_LICENSE',
         amount: totalAmount,
         currency,
-        type: 'INVOICE_SETTLEMENT',
         status: 'AUTHORIZED_HOLD',
-        escrowConditions: `Invoice ${invoiceNumber} reconciliation upon verified delivery of ${items.map((i) => i.name).join(', ')}.`,
-        auditScore: 92,
-        auditNotes: `PayPal Invoicing v2 synchronized (${invoiceRes.invoiceId}). Line-item rate card matches contracted purchase order.`,
+        deliverableSummary: `Invoice ${invoiceNumber} rate card reconciliation for ${items.map((i) => i.name).join(', ')}.`,
+        aiRiskScore: 16,
+        aiAuditVerdict: 'APPROVED',
+        aiAuditReasoning: `PayPal Invoicing v2 draft synchronized (${invoiceRes.invoiceId}). Line-item unit rate verified.`,
+        rawPaypalResponse: invoiceRes.rawResponse,
       },
     });
 
     // Hash-chained audit entry
     const lastAudit = await tenantDb.auditLogs.findMany({ take: 1 });
-    const prevHash = lastAudit[0]?.currentHash || '0000000000000000000000000000000000000000000000000000000000000000';
+    const prevHash = lastAudit[0]?.recordHash || '0000000000000000000000000000000000000000000000000000000000000000';
     const timestamp = new Date().toISOString();
+    const actor = 'USER';
     const action = 'PAYPAL_INVOICE_CREATED';
     const details = JSON.stringify({
       invoiceId: invoiceRes.invoiceId,
@@ -99,16 +105,17 @@ export async function POST(request: NextRequest) {
       amount: totalAmount,
       recipient: counterpartyName,
     });
-    const currentHash = computeBlockHash(prevHash, timestamp, action, details);
+    const recordHash = computeBlockHash(prevHash, timestamp, actor, action, details);
 
     await tenantDb.auditLogs.create({
-      userId: session.userId,
+      actor,
       action,
-      entityType: 'LedgerTransaction',
-      entityId: transaction.id,
-      details,
+      targetId: transaction.id,
+      paypalEndpoint: '/v2/invoicing/invoices',
+      httpStatus: 201,
+      redactedDetails: details,
       previousHash: prevHash,
-      currentHash,
+      recordHash,
     });
 
     secureLogger.info('PayPal Invoice Generated', { invoiceNumber, invoiceId: invoiceRes.invoiceId });

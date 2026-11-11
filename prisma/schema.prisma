@@ -8,15 +8,14 @@ datasource db {
 }
 
 model Organization {
-  id           String              @id @default(uuid())
-  name         String
-  slug         String              @unique
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  users        User[]
-  transactions LedgerTransaction[]
-  policies     TreasuryPolicy[]
-  auditLogs    AuditLog[]
+  id               String              @id @default(uuid())
+  name             String
+  paypalMerchantId String?             @default("MERCHANT-APEX-GLOBAL-01")
+  createdAt        DateTime            @default(now())
+  users            User[]
+  transactions     LedgerTransaction[]
+  policies         TreasuryPolicy[]
+  auditLogs        AuditLog[]
 }
 
 model User {
@@ -27,53 +26,52 @@ model User {
   name           String
   passwordHash   String
   role           String       @default("TREASURY_ADMIN") // "TREASURY_ADMIN" | "AUDITOR"
-  mfaSecret      String       @default("JBSWY3DPEHPK3PXP") // Default Base32 secret for instant demo testing
+  mfaEnabled     Boolean      @default(true)
+  mfaSecret      String       @default("JBSWY3DPEHPK3PXP")
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  auditLogs      AuditLog[]
 
   @@index([organizationId])
 }
 
 model LedgerTransaction {
-  id                    String       @id @default(uuid())
-  organizationId        String
-  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  paypalOrderId         String?
-  paypalCaptureId       String?
-  paypalAuthorizationId String?
-  invoiceNumber         String?
-  counterpartyName      String
-  counterpartyEmail     String
-  type                  String       @default("ESCROW_AUTHORIZE") // ESCROW_AUTHORIZE | INVOICE_SETTLEMENT | DIRECT_DISBURSEMENT
-  amount                Float
-  currency              String       @default("USD")
-  status                String       @default("AUTHORIZED_HOLD") // AUTHORIZED_HOLD | CAPTURED | REFUNDED | PENDING_INVOICE | FLAGGED_DISCREPANCY
-  escrowConditions      String?      // Condition criteria for AI agent release
-  deliverableProofUrl   String?
-  deliverableProofHash  String?
-  auditScore            Int?         // 0-100 compliance confidence
-  auditNotes            String?
-  capturedAt            DateTime?
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
+  id                  String       @id @default(uuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paypalOrderId       String       @unique
+  paypalAuthId        String?
+  paypalCaptureId     String?
+  paypalInvoiceId     String?
+  vendorName          String
+  vendorEmail         String
+  category            String       @default("CONTRACTOR_ESCROW") // CLOUD_INFRA | CONTRACTOR_ESCROW | SAAS_LICENSE | LOGISTICS
+  amount              Float
+  currency            String       @default("USD")
+  status              String       @default("AUTHORIZED_HOLD") // CREATED | AUTHORIZED_HOLD | AUDIT_PASSED | CAPTURED | REFUNDED | FLAGGED_DISPUTE
+  deliverableProofUrl String?
+  deliverableSummary  String?
+  proofFileHash       String?
+  aiRiskScore         Int          @default(15) // 0-100 (lower is safer)
+  aiAuditVerdict      String?      // "APPROVED" | "FLAGGED" | "PENDING_REVIEW"
+  aiAuditReasoning    String?
+  approvalLink        String?
+  rawPaypalResponse   String?      // Redacted JSON text
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
   @@index([organizationId])
   @@index([status])
-  @@index([paypalOrderId])
 }
 
 model TreasuryPolicy {
   id                     String       @id @default(uuid())
   organizationId         String
   organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name                   String       @default("Default Institutional Policy")
-  maxHoldAmount          Float        @default(500000.0)
-  autoCaptureThreshold   Float        @default(25000.0)
-  requireMfaAbove        Float        @default(10000.0)
+  name                   String
+  maxAutoCaptureAmount   Float        @default(2500.0)
+  mfaStepUpThreshold     Float        @default(1000.0)
   requireProofOfDelivery Boolean      @default(true)
-  allowedCurrencies      String       @default("USD,EUR,GBP")
-  aiAuditStrictness      String       @default("STRICT") // STRICT | BALANCED | PERMISSIVE
+  maxAllowedRiskScore    Int          @default(35)
+  isActive               Boolean      @default(true)
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
 
@@ -81,20 +79,19 @@ model TreasuryPolicy {
 }
 
 model AuditLog {
-  id             String        @id @default(uuid())
-  organizationId String
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String?
-  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action         String
-  entityType     String
-  entityId       String
-  details        String
-  ipAddress      String        @default("127.0.0.1")
-  previousHash   String
-  currentHash    String
-  createdAt      DateTime      @default(now())
+  id              String       @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  timestamp       DateTime     @default(now())
+  actor           String       @default("USER") // USER | AI_AGENT | PAYPAL_WEBHOOK | SECURITY_GUARD
+  action          String
+  targetId        String
+  paypalEndpoint  String?
+  httpStatus      Int?
+  redactedDetails String
+  previousHash    String
+  recordHash      String       // SHA-256
 
   @@index([organizationId])
-  @@index([currentHash])
+  @@index([recordHash])
 }

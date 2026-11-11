@@ -4,6 +4,20 @@
 
 export type UserRole = 'TREASURY_ADMIN' | 'AUDITOR';
 
+export type EscrowCategory =
+  | 'CLOUD_INFRA'
+  | 'CONTRACTOR_ESCROW'
+  | 'SAAS_LICENSE'
+  | 'LOGISTICS';
+
+export type EscrowStatus =
+  | 'CREATED'
+  | 'AUTHORIZED_HOLD'
+  | 'AUDIT_PASSED'
+  | 'CAPTURED'
+  | 'REFUNDED'
+  | 'FLAGGED_DISPUTE';
+
 export interface UserSession {
   userId: string;
   email: string;
@@ -14,7 +28,7 @@ export interface UserSession {
 }
 
 export interface AuthJwtPayload {
-  sub: string; // userId
+  sub: string;
   email: string;
   name: string;
   role: UserRole;
@@ -25,16 +39,70 @@ export interface AuthJwtPayload {
 }
 
 // ------------------------------------------------------------------------------
-// PayPal REST v2 Types
+// Multi-Tenant Ledger Transaction Definition
+// ------------------------------------------------------------------------------
+
+export interface FinancialBlotterRow {
+  id: string;
+  organizationId: string;
+  paypalOrderId: string;
+  paypalAuthId: string | null;
+  paypalCaptureId: string | null;
+  paypalInvoiceId: string | null;
+  vendorName: string;
+  vendorEmail: string;
+  category: EscrowCategory;
+  amount: number;
+  currency: string;
+  status: EscrowStatus;
+  deliverableProofUrl: string | null;
+  deliverableSummary: string | null;
+  proofFileHash: string | null;
+  aiRiskScore: number; // 0-100 (lower is safer)
+  aiAuditVerdict: string | null;
+  aiAuditReasoning: string | null;
+  approvalLink: string | null;
+  rawPaypalResponse: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TreasuryPolicyRecord {
+  id: string;
+  organizationId: string;
+  name: string;
+  maxAutoCaptureAmount: number;
+  mfaStepUpThreshold: number;
+  requireProofOfDelivery: boolean;
+  maxAllowedRiskScore: number;
+  isActive: boolean;
+}
+
+export interface AuditLogRecord {
+  id: string;
+  organizationId: string;
+  timestamp: string;
+  actor: 'USER' | 'AI_AGENT' | 'PAYPAL_WEBHOOK' | 'SECURITY_GUARD';
+  action: string;
+  targetId: string;
+  paypalEndpoint: string | null;
+  httpStatus: number | null;
+  redactedDetails: string;
+  previousHash: string;
+  recordHash: string;
+}
+
+// ------------------------------------------------------------------------------
+// PayPal REST v2 Interfaces
 // ------------------------------------------------------------------------------
 
 export interface PayPalAmount {
   currency_code: string;
-  value: string; // e.g. "42500.00"
+  value: string;
 }
 
 export interface PayPalOrderAuthorizeRequest {
-  intent: 'AUTHORIZE';
+  intent: 'AUTHORIZE' | 'CAPTURE';
   purchase_units: Array<{
     reference_id?: string;
     description?: string;
@@ -46,6 +114,12 @@ export interface PayPalOrderAuthorizeRequest {
       merchant_id?: string;
     };
   }>;
+  application_context?: {
+    return_url?: string;
+    cancel_url?: string;
+    brand_name?: string;
+    user_action?: 'PAY_NOW' | 'CONTINUE';
+  };
 }
 
 export interface PayPalOrderResponse {
@@ -53,31 +127,21 @@ export interface PayPalOrderResponse {
   status: 'CREATED' | 'SAVED' | 'APPROVED' | 'VOIDED' | 'COMPLETED' | 'PAYER_ACTION_REQUIRED';
   intent: 'AUTHORIZE' | 'CAPTURE';
   purchase_units: Array<{
-    reference_id: string;
+    reference_id?: string;
     amount: PayPalAmount;
     payments?: {
       authorizations?: Array<{
         id: string;
-        status: 'CREATED' | 'CAPTURED' | 'DENIED' | 'EXPIRED' | 'PARTIALLY_CAPTURED' | 'VOIDED' | 'PENDING';
+        status: string;
         amount: PayPalAmount;
-        create_time: string;
-        update_time: string;
-        expiration_time?: string;
       }>;
       captures?: Array<{
         id: string;
-        status: 'COMPLETED' | 'DECLINED' | 'PARTIALLY_REFUNDED' | 'PENDING' | 'REFUNDED';
-        amount: PayPalAmount;
-        create_time: string;
-      }>;
-      refunds?: Array<{
-        id: string;
-        status: 'COMPLETED' | 'CANCELLED' | 'PENDING';
+        status: string;
         amount: PayPalAmount;
       }>;
     };
   }>;
-  create_time: string;
   links?: Array<{
     href: string;
     rel: string;
@@ -90,49 +154,15 @@ export interface PayPalCaptureResponse {
   status: 'COMPLETED' | 'DECLINED' | 'PARTIALLY_REFUNDED' | 'PENDING' | 'REFUNDED';
   amount: PayPalAmount;
   final_capture?: boolean;
-  create_time: string;
-  update_time: string;
+  create_time?: string;
+  update_time?: string;
 }
 
 export interface PayPalRefundResponse {
   id: string;
   status: 'COMPLETED' | 'CANCELLED' | 'PENDING';
-  amount: PayPalAmount;
-  create_time: string;
-}
-
-export interface PayPalInvoiceItem {
-  name: string;
-  description?: string;
-  quantity: string;
-  unit_amount: PayPalAmount;
-}
-
-export interface PayPalInvoiceRequest {
-  detail: {
-    invoice_number: string;
-    reference?: string;
-    invoice_date: string;
-    currency_code: string;
-    note?: string;
-  };
-  invoicer: {
-    name: {
-      given_name: string;
-      surname: string;
-    };
-    email_address: string;
-  };
-  primary_recipients: Array<{
-    billing_info: {
-      name: {
-        given_name: string;
-        surname: string;
-      };
-      email_address: string;
-    };
-  }>;
-  items: PayPalInvoiceItem[];
+  amount?: PayPalAmount;
+  create_time?: string;
 }
 
 export interface PayPalWebhookVerificationRequest {
@@ -145,37 +175,8 @@ export interface PayPalWebhookVerificationRequest {
   webhook_event: Record<string, unknown>;
 }
 
-export interface PayPalWebhookVerificationResponse {
-  verification_status: 'SUCCESS' | 'FAILURE';
-}
-
 // ------------------------------------------------------------------------------
-// Financial Blotter & Escrow Types
-// ------------------------------------------------------------------------------
-
-export interface FinancialBlotterRow {
-  id: string;
-  paypalOrderId: string | null;
-  paypalCaptureId: string | null;
-  paypalAuthorizationId: string | null;
-  invoiceNumber: string | null;
-  counterpartyName: string;
-  counterpartyEmail: string;
-  type: string;
-  amount: number;
-  currency: string;
-  status: 'AUTHORIZED_HOLD' | 'CAPTURED' | 'REFUNDED' | 'PENDING_INVOICE' | 'FLAGGED_DISCREPANCY';
-  escrowConditions: string | null;
-  deliverableProofUrl: string | null;
-  deliverableProofHash: string | null;
-  auditScore: number | null;
-  auditNotes: string | null;
-  capturedAt: string | null;
-  createdAt: string;
-}
-
-// ------------------------------------------------------------------------------
-// Security Audit & OWASP Verification Matrix Types
+// Security Audit Types
 // ------------------------------------------------------------------------------
 
 export interface SecurityControlStatus {
@@ -192,7 +193,7 @@ export interface SecurityControlStatus {
 
 export interface SecurityAuditReport {
   timestamp: string;
-  overallScore: number; // e.g. 100
+  overallScore: number;
   controlsPassed: number;
   totalControls: number;
   controls: SecurityControlStatus[];
@@ -200,16 +201,24 @@ export interface SecurityAuditReport {
 }
 
 // ------------------------------------------------------------------------------
-// Autonomous Agent Engine Types
+// AI Agent Action Directives
 // ------------------------------------------------------------------------------
 
 export interface AgentActionDirective {
-  intent: 'FILTER_GRID' | 'AUDIT_DELIVERY' | 'CAPTURE_ESCROW' | 'RELEASE_HOLD' | 'QUERY_TREASURY' | 'UNKNOWN';
+  intent:
+    | 'filter_ag_grid_ledger'
+    | 'create_paypal_escrow_order'
+    | 'create_paypal_invoice'
+    | 'audit_and_release_escrow'
+    | 'run_security_posture_scan'
+    | 'query_treasury';
   filterColumn?: string;
   filterValue?: string;
+  filterMinAmount?: number;
+  filterMaxAmount?: number;
   transactionId?: string;
+  createdOrder?: Partial<FinancialBlotterRow>;
   summary: string;
   confidence: number;
   recommendedNextStep?: string;
-  auditPass?: boolean;
 }

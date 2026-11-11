@@ -7,14 +7,14 @@ import { computeBlockHash } from '@/lib/crypto-audit';
 import { secureLogger } from '@/lib/secure-logger';
 
 const CreateOrderSchema = z.object({
-  counterpartyName: z.string().min(2),
-  counterpartyEmail: z.string().email(),
+  vendorName: z.string().min(2),
+  vendorEmail: z.string().email(),
+  category: z.enum(['CLOUD_INFRA', 'CONTRACTOR_ESCROW', 'SAAS_LICENSE', 'LOGISTICS']).default('CONTRACTOR_ESCROW'),
   amount: z.number().positive(),
   currency: z.string().default('USD'),
-  type: z.enum(['ESCROW_AUTHORIZE', 'INVOICE_SETTLEMENT', 'DIRECT_DISBURSEMENT']).default('ESCROW_AUTHORIZE'),
-  escrowConditions: z.string().min(5),
+  deliverableSummary: z.string().min(5),
   deliverableProofUrl: z.string().url().optional().nullable(),
-  deliverableProofHash: z.string().optional().nullable(),
+  proofFileHash: z.string().optional().nullable(),
 });
 
 export async function GET() {
@@ -37,10 +37,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // RBAC check: AUDITOR cannot create orders
   if (session.role === 'AUDITOR') {
     return NextResponse.json(
-      { error: 'Forbidden', message: 'Auditor role does not have authorization to create treasury escrows' },
+      { error: 'Forbidden', message: 'AUDITOR role cannot initiate PayPal escrow authorizations' },
       { status: 403 }
     );
   }
@@ -55,62 +54,64 @@ export async function POST(request: NextRequest) {
     const data = parsed.data;
     const tenantDb = getTenantDb(session.organizationId);
 
-    // 1. Call PayPal Orders v2 with Intent: AUTHORIZE
-    const paypalOrder = await paypalClient.createAuthorizeOrder({
+    // 1. Call PayPal Orders v2 (intent: AUTHORIZE)
+    const paypalRes = await paypalClient.createOrder({
       amount: data.amount,
       currency: data.currency,
-      description: `Escrow Hold: ${data.escrowConditions.slice(0, 100)}`,
-      counterpartyEmail: data.counterpartyEmail,
+      vendorName: data.vendorName,
+      vendorEmail: data.vendorEmail,
+      description: `Escrow Hold: ${data.deliverableSummary.slice(0, 100)}`,
+      intent: 'AUTHORIZE',
     });
 
-    // 2. Persist in Multi-Tenant Database
+    // 2. Persist in Database
     const transaction = await tenantDb.transactions.create({
       data: {
-        counterpartyName: data.counterpartyName,
-        counterpartyEmail: data.counterpartyEmail,
+        paypalOrderId: paypalRes.orderId,
+        paypalAuthId: paypalRes.authId,
+        vendorName: data.vendorName,
+        vendorEmail: data.vendorEmail,
+        category: data.category,
         amount: data.amount,
         currency: data.currency,
-        type: data.type,
         status: 'AUTHORIZED_HOLD',
-        paypalOrderId: paypalOrder.orderId,
-        paypalAuthorizationId: paypalOrder.authorizationId,
-        escrowConditions: data.escrowConditions,
-        deliverableProofUrl: data.deliverableProofUrl,
-        deliverableProofHash: data.deliverableProofHash,
-        auditScore: 85,
-        auditNotes: 'Initial authorized hold placed. Pending milestone proof attestation.',
+        deliverableSummary: data.deliverableSummary,
+        deliverableProofUrl: data.deliverableProofUrl || null,
+        proofFileHash: data.proofFileHash || null,
+        aiRiskScore: 14,
+        aiAuditVerdict: 'PENDING_REVIEW',
+        aiAuditReasoning: 'Authorized hold placed. Awaiting final proof artifact delivery.',
+        approvalLink: paypalRes.approvalLink,
+        rawPaypalResponse: paypalRes.rawResponse,
       },
     });
 
-    // 3. Append to Cryptographic Audit Hash Chain
+    // 3. Cryptographic Hash Chain Audit Entry
     const lastAudit = await tenantDb.auditLogs.findMany({ take: 1 });
-    const prevHash = lastAudit[0]?.currentHash || '0000000000000000000000000000000000000000000000000000000000000000';
+    const prevHash = lastAudit[0]?.recordHash || '0000000000000000000000000000000000000000000000000000000000000000';
     const timestamp = new Date().toISOString();
+    const actor = 'USER';
     const action = 'PAYPAL_ORDER_AUTHORIZED';
     const details = JSON.stringify({
-      orderId: paypalOrder.orderId,
-      authorizationId: paypalOrder.authorizationId,
+      orderId: paypalRes.orderId,
       amount: data.amount,
-      currency: data.currency,
-      counterparty: data.counterpartyName,
+      vendor: data.vendorName,
+      category: data.category,
     });
-    const currentHash = computeBlockHash(prevHash, timestamp, action, details);
+    const recordHash = computeBlockHash(prevHash, timestamp, actor, action, details);
 
     await tenantDb.auditLogs.create({
-      userId: session.userId,
+      actor,
       action,
-      entityType: 'LedgerTransaction',
-      entityId: transaction.id,
-      details,
+      targetId: transaction.id,
+      paypalEndpoint: '/v2/checkout/orders',
+      httpStatus: 201,
+      redactedDetails: details,
       previousHash: prevHash,
-      currentHash,
+      recordHash,
     });
 
-    secureLogger.info('PayPal Authorize Escrow Created', {
-      transactionId: transaction.id,
-      paypalOrderId: paypalOrder.orderId,
-      amount: data.amount,
-    });
+    secureLogger.info('PayPal Escrow Order Placed', { orderId: paypalRes.orderId, amount: data.amount });
 
     return NextResponse.json({ success: true, transaction });
   } catch (error) {

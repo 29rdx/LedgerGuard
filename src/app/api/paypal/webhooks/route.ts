@@ -15,14 +15,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
     }
 
-    // Extract PayPal Transmission Headers
     const transmissionId = request.headers.get('paypal-transmission-id');
     const transmissionTime = request.headers.get('paypal-transmission-time');
     const transmissionSig = request.headers.get('paypal-transmission-sig');
     const certUrl = request.headers.get('paypal-cert-url');
     const authAlgo = request.headers.get('paypal-auth-algo');
 
-    // 1. Validate certUrl with SSRF Guard (must be official PayPal domain)
+    // 1. SSRF Guard on certUrl
     if (certUrl) {
       const ssrfCheck = validateSsrfUrl(certUrl);
       if (!ssrfCheck.valid) {
@@ -31,7 +30,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 2. Cryptographic Signature Verification via PayPal REST API
+    // 2. Cryptographic Signature Verification
     const isSignatureValid = await paypalClient.verifyWebhookSignature({
       auth_algo: authAlgo || 'SHA256withRSA',
       cert_url: certUrl || 'https://api.sandbox.paypal.com/v1/notifications/certs/CERT-360-17580.pem',
@@ -56,11 +55,10 @@ export async function POST(request: NextRequest) {
 
     secureLogger.info('PayPal Webhook Authenticated and Processed', { eventType, orderId });
 
-    // 3. Find and update transaction if matched
     if (orderId && typeof orderId === 'string') {
       const tx = await prisma.ledgerTransaction.findFirst({
         where: {
-          OR: [{ paypalOrderId: orderId }, { paypalAuthorizationId: orderId }, { paypalCaptureId: orderId }],
+          OR: [{ paypalOrderId: orderId }, { paypalAuthId: orderId }, { paypalCaptureId: orderId }],
         },
       });
 
@@ -79,23 +77,26 @@ export async function POST(request: NextRequest) {
           // Cryptographic Hash Chain Audit
           const lastAudit = await prisma.auditLog.findFirst({
             where: { organizationId: tx.organizationId },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { timestamp: 'desc' },
           });
-          const prevHash = lastAudit?.currentHash || '0000000000000000000000000000000000000000000000000000000000000000';
+          const prevHash = lastAudit?.recordHash || '0000000000000000000000000000000000000000000000000000000000000000';
           const timestamp = new Date().toISOString();
+          const actor = 'PAYPAL_WEBHOOK';
           const action = `WEBHOOK_${eventType.replace(/\./g, '_')}`;
           const details = JSON.stringify({ eventType, orderId, transmissionId });
-          const currentHash = computeBlockHash(prevHash, timestamp, action, details);
+          const recordHash = computeBlockHash(prevHash, timestamp, actor, action, details);
 
           await prisma.auditLog.create({
             data: {
               organizationId: tx.organizationId,
+              actor,
               action,
-              entityType: 'LedgerTransaction',
-              entityId: tx.id,
-              details,
+              targetId: tx.id,
+              paypalEndpoint: '/v1/notifications/verify-webhook-signature',
+              httpStatus: 200,
+              redactedDetails: details,
               previousHash: prevHash,
-              currentHash,
+              recordHash,
             },
           });
         }

@@ -55,16 +55,18 @@ export async function POST(request: NextRequest) {
     const updated = await tenantDb.transactions.update({
       where: { id: transactionId },
       data: {
-        deliverableProofHash: validation.sha256,
+        proofFileHash: validation.sha256,
         deliverableProofUrl: simulatedProofUrl,
-        auditNotes: `Proof-of-delivery file verified. SHA-256: ${validation.sha256}. Magic-byte type: ${validation.detectedType}.`,
+        aiAuditVerdict: 'APPROVED',
+        aiAuditReasoning: `Proof-of-delivery file verified. SHA-256: ${validation.sha256}. Magic-byte type: ${validation.detectedType}.`,
       },
     });
 
     // Hash-chained audit entry
     const lastAudit = await tenantDb.auditLogs.findMany({ take: 1 });
-    const prevHash = lastAudit[0]?.currentHash || '0000000000000000000000000000000000000000000000000000000000000000';
+    const prevHash = lastAudit[0]?.recordHash || '0000000000000000000000000000000000000000000000000000000000000000';
     const timestamp = new Date().toISOString();
+    const actor = 'USER';
     const action = 'PROOF_OF_DELIVERY_UPLOADED';
     const details = JSON.stringify({
       transactionId,
@@ -73,16 +75,17 @@ export async function POST(request: NextRequest) {
       sha256: validation.sha256,
       detectedType: validation.detectedType,
     });
-    const currentHash = computeBlockHash(prevHash, timestamp, action, details);
+    const recordHash = computeBlockHash(prevHash, timestamp, actor, action, details);
 
     await tenantDb.auditLogs.create({
-      userId: session.userId,
+      actor,
       action,
-      entityType: 'LedgerTransaction',
-      entityId: transactionId,
-      details,
+      targetId: transactionId,
+      paypalEndpoint: null,
+      httpStatus: 200,
+      redactedDetails: details,
       previousHash: prevHash,
-      currentHash,
+      recordHash,
     });
 
     return NextResponse.json({

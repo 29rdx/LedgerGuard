@@ -30,49 +30,51 @@ export async function POST(
   }
 
   try {
-    // Execute refund or void
-    const result = await paypalClient.refundOrVoid({
-      captureId: transaction.paypalCaptureId,
-      authorizationId: transaction.paypalAuthorizationId,
-      amount: transaction.amount,
-      currency: transaction.currency,
-    });
+    const refundRes = await paypalClient.refundCapture(
+      transaction.paypalCaptureId || `CAP-${transaction.paypalOrderId}`,
+      transaction.amount,
+      transaction.currency,
+      'Treasury policy void/refund'
+    );
 
     const updated = await tenantDb.transactions.update({
       where: { id },
       data: {
         status: 'REFUNDED',
-        auditNotes: `Void/Refund executed on PayPal network (${result.refundId}). Funds returned to treasury.`,
+        aiAuditVerdict: 'FLAGGED',
+        aiAuditReasoning: `Void/Refund executed (${refundRes.refundId}). Funds released back to treasury.`,
+        rawPaypalResponse: refundRes.rawResponse,
       },
     });
 
     // Hash-chained audit entry
     const lastAudit = await tenantDb.auditLogs.findMany({ take: 1 });
-    const prevHash = lastAudit[0]?.currentHash || '0000000000000000000000000000000000000000000000000000000000000000';
+    const prevHash = lastAudit[0]?.recordHash || '0000000000000000000000000000000000000000000000000000000000000000';
     const timestamp = new Date().toISOString();
+    const actor = 'USER';
     const action = 'PAYPAL_ORDER_REFUNDED';
     const details = JSON.stringify({
       transactionId: id,
-      refundId: result.refundId,
+      refundId: refundRes.refundId,
       amount: transaction.amount,
-      currency: transaction.currency,
       executedBy: session.email,
     });
-    const currentHash = computeBlockHash(prevHash, timestamp, action, details);
+    const recordHash = computeBlockHash(prevHash, timestamp, actor, action, details);
 
     await tenantDb.auditLogs.create({
-      userId: session.userId,
+      actor,
       action,
-      entityType: 'LedgerTransaction',
-      entityId: id,
-      details,
+      targetId: id,
+      paypalEndpoint: `/v2/payments/captures/${transaction.paypalCaptureId || 'cap'}/refund`,
+      httpStatus: 201,
+      redactedDetails: details,
       previousHash: prevHash,
-      currentHash,
+      recordHash,
     });
 
-    secureLogger.info('PayPal Order Refunded/Voided', { transactionId: id, refundId: result.refundId });
+    secureLogger.info('PayPal Order Refunded', { transactionId: id, refundId: refundRes.refundId });
 
-    return NextResponse.json({ success: true, transaction: updated, refundId: result.refundId });
+    return NextResponse.json({ success: true, transaction: updated, refundId: refundRes.refundId });
   } catch (error) {
     secureLogger.error('Refund Error', error);
     return NextResponse.json({ error: 'Failed to process refund or void' }, { status: 500 });

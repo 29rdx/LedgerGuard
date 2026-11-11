@@ -115,11 +115,12 @@ export async function POST(request: NextRequest) {
     // 4. Log to Audit Trail
     const lastAudit = await prisma.auditLog.findFirst({
       where: { organizationId: targetUser.organization.id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { timestamp: 'desc' },
     });
 
-    const prevHash = lastAudit?.currentHash || '0000000000000000000000000000000000000000000000000000000000000000';
+    const prevHash = lastAudit?.recordHash || '0000000000000000000000000000000000000000000000000000000000000000';
     const timestamp = new Date().toISOString();
+    const actor = 'USER';
     const action = 'USER_AUTHENTICATED';
     const details = JSON.stringify({
       email: targetUser.email,
@@ -127,20 +128,17 @@ export async function POST(request: NextRequest) {
       method: ephemeralJudge ? 'EPHEMERAL_DEMO' : 'PASSWORD_BCRYPT',
       ip,
     });
-    const currentHash = computeBlockHash(prevHash, timestamp, action, details);
+    const recordHash = computeBlockHash(prevHash, timestamp, actor, action, details);
 
     await prisma.auditLog.create({
       data: {
         organizationId: targetUser.organization.id,
-        userId: targetUser.id,
+        actor,
         action,
-        entityType: 'User',
-        entityId: targetUser.id,
-        details,
-        ipAddress: ip,
+        targetId: targetUser.id,
+        redactedDetails: details,
         previousHash: prevHash,
-        currentHash,
-        createdAt: new Date(timestamp),
+        recordHash,
       },
     });
 

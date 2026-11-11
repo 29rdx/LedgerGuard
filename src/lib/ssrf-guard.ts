@@ -101,3 +101,4 @@ export function validateSsrfUrl(inputUrl: string, customAllowlist?: string[]): S
     sanitizedUrl: parsed.toString(),
   };
 }
+

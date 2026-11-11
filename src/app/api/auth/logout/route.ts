@@ -7,3 +7,4 @@ export async function POST() {
   response.cookies.delete(CSRF_COOKIE_NAME);
   return response;
 }
+

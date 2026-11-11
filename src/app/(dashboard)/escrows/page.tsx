@@ -7,12 +7,12 @@ import {
   CheckCircle2,
   AlertTriangle,
   Bot,
-  FileText,
   Shield,
   RefreshCw,
   Plus,
+  ExternalLink,
 } from 'lucide-react';
-import { FinancialBlotterRow } from '@/types';
+import { FinancialBlotterRow, EscrowCategory } from '@/types';
 
 export default function EscrowsPage() {
   const [escrows, setEscrows] = useState<FinancialBlotterRow[]>([]);
@@ -20,11 +20,12 @@ export default function EscrowsPage() {
 
   // New Escrow Form State
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [counterpartyName, setCounterpartyName] = useState('');
-  const [counterpartyEmail, setCounterpartyEmail] = useState('');
-  const [amount, setAmount] = useState('50000');
+  const [vendorName, setVendorName] = useState('');
+  const [vendorEmail, setVendorEmail] = useState('');
+  const [category, setCategory] = useState<EscrowCategory>('CONTRACTOR_ESCROW');
+  const [amount, setAmount] = useState('1450');
   const [currency, setCurrency] = useState('USD');
-  const [escrowConditions, setEscrowConditions] = useState('');
+  const [deliverableSummary, setDeliverableSummary] = useState('');
   const [deliverableProofUrl, setDeliverableProofUrl] = useState('');
   const [creating, setCreating] = useState(false);
 
@@ -43,7 +44,7 @@ export default function EscrowsPage() {
       const res = await fetch('/api/paypal/orders');
       const data = await res.json();
       if (data.transactions) {
-        setEscrows(data.transactions.filter((t: FinancialBlotterRow) => t.type === 'ESCROW_AUTHORIZE'));
+        setEscrows(data.transactions);
       }
     } catch (err) {
       console.error(err);
@@ -64,21 +65,21 @@ export default function EscrowsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          counterpartyName,
-          counterpartyEmail,
+          vendorName,
+          vendorEmail,
+          category,
           amount: parseFloat(amount),
           currency,
-          type: 'ESCROW_AUTHORIZE',
-          escrowConditions,
+          deliverableSummary,
           deliverableProofUrl: deliverableProofUrl || null,
         }),
       });
 
       if (res.ok) {
         setShowCreateModal(false);
-        setCounterpartyName('');
-        setCounterpartyEmail('');
-        setEscrowConditions('');
+        setVendorName('');
+        setVendorEmail('');
+        setDeliverableSummary('');
         setDeliverableProofUrl('');
         fetchEscrows();
       }
@@ -198,13 +199,18 @@ export default function EscrowsPage() {
           >
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                  {escrow.paypalOrderId || escrow.paypalAuthorizationId || 'AUTH-HOLD'}
-                </span>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mt-1">
-                  {escrow.counterpartyName}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    {escrow.paypalOrderId}
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300">
+                    {escrow.category}
+                  </span>
+                </div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mt-1.5">
+                  {escrow.vendorName}
                 </h3>
-                <div className="text-[11px] text-slate-400 font-mono">{escrow.counterpartyEmail}</div>
+                <div className="text-[11px] text-slate-400 font-mono">{escrow.vendorEmail}</div>
               </div>
 
               <div className="text-right">
@@ -216,9 +222,13 @@ export default function EscrowsPage() {
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                       CAPTURED
                     </span>
-                  ) : escrow.status === 'FLAGGED_DISCREPANCY' ? (
+                  ) : escrow.status === 'AUDIT_PASSED' ? (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      AUDIT PASSED
+                    </span>
+                  ) : escrow.status === 'FLAGGED_DISPUTE' ? (
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
-                      FLAGGED MISMATCH
+                      FLAGGED DISPUTE
                     </span>
                   ) : (
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
@@ -232,19 +242,19 @@ export default function EscrowsPage() {
             {/* Escrow Terms */}
             <div className="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/60 p-3 rounded border border-slate-100 dark:border-slate-800 space-y-1">
               <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">
-                Acceptance Criteria
+                Deliverable Acceptance Criteria
               </div>
-              <p className="leading-relaxed">{escrow.escrowConditions || 'No conditions specified'}</p>
+              <p className="leading-relaxed">{escrow.deliverableSummary || 'No acceptance criteria specified'}</p>
             </div>
 
-            {/* Cryptographic SHA-256 Proof Badge */}
+            {/* Cryptographic Proof */}
             <div className="text-xs space-y-1 font-mono">
               <div className="text-[10px] text-slate-400 uppercase font-semibold">
                 Cryptographic Attestation
               </div>
-              {escrow.deliverableProofHash ? (
+              {escrow.proofFileHash ? (
                 <div className="text-[11px] text-slate-600 dark:text-slate-300 truncate bg-slate-100 dark:bg-slate-800 p-1.5 rounded border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                  <span className="truncate">SHA-256: {escrow.deliverableProofHash}</span>
+                  <span className="truncate">SHA-256: {escrow.proofFileHash}</span>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 ml-1" />
                 </div>
               ) : (
@@ -313,36 +323,51 @@ export default function EscrowsPage() {
             <form onSubmit={handleCreateEscrow} className="space-y-3 text-xs">
               <div>
                 <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
-                  Beneficiary / Counterparty Name
+                  Vendor / Contractor Name
                 </label>
                 <input
                   type="text"
                   required
-                  value={counterpartyName}
-                  onChange={(e) => setCounterpartyName(e.target.value)}
-                  placeholder="e.g. Palantir Defense Systems Inc."
+                  value={vendorName}
+                  onChange={(e) => setVendorName(e.target.value)}
+                  placeholder="e.g. Vertex Semiconductor"
                   className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                 />
               </div>
 
               <div>
                 <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
-                  Beneficiary Email
+                  Vendor Email
                 </label>
                 <input
                   type="email"
                   required
-                  value={counterpartyEmail}
-                  onChange={(e) => setCounterpartyEmail(e.target.value)}
-                  placeholder="billing@beneficiary.com"
+                  value={vendorEmail}
+                  onChange={(e) => setVendorEmail(e.target.value)}
+                  placeholder="billing@vendor.com"
                   className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
-                    Escrow Amount
+                    Category
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value as EscrowCategory)}
+                    className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
+                  >
+                    <option value="CONTRACTOR_ESCROW">CONTRACTOR_ESCROW</option>
+                    <option value="CLOUD_INFRA">CLOUD_INFRA</option>
+                    <option value="SAAS_LICENSE">SAAS_LICENSE</option>
+                    <option value="LOGISTICS">LOGISTICS</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+                    Amount
                   </label>
                   <input
                     type="number"
@@ -371,13 +396,13 @@ export default function EscrowsPage() {
 
               <div>
                 <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
-                  Acceptance Criteria (Escrow Release Conditions)
+                  Deliverable Summary & Acceptance Terms
                 </label>
                 <textarea
                   rows={3}
                   required
-                  value={escrowConditions}
-                  onChange={(e) => setEscrowConditions(e.target.value)}
+                  value={deliverableSummary}
+                  onChange={(e) => setDeliverableSummary(e.target.value)}
                   placeholder="Specify milestone delivery criteria, SLA uptime thresholds, or cryptographic artifacts required before release."
                   className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                 />
@@ -391,7 +416,7 @@ export default function EscrowsPage() {
                   type="url"
                   value={deliverableProofUrl}
                   onChange={(e) => setDeliverableProofUrl(e.target.value)}
-                  placeholder="https://raw.githubusercontent.com/.../release-artifact.json"
+                  placeholder="https://raw.githubusercontent.com/.../artifact.pdf"
                   className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
                 />
               </div>

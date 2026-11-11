@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/navigation';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Shield,
@@ -13,14 +12,16 @@ import {
   Settings,
   LogOut,
   Bot,
-  Activity,
   ChevronRight,
   Send,
   X,
   Sparkles,
   Key,
+  UserCheck,
+  UserCog,
 } from 'lucide-react';
 import { UserSession } from '@/types';
+import { JUDGE_PROMPT_CHIPS } from '@/lib/agent-engine';
 
 export default function DashboardLayout({
   children,
@@ -42,40 +43,48 @@ export default function DashboardLayout({
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [switchingRole, setSwitchingRole] = useState(false);
   const [aiMessages, setAiMessages] = useState<
     Array<{ role: 'user' | 'agent'; text: string; details?: string }>
   >([
     {
       role: 'agent',
-      text: 'LedgerGuard Autonomous Treasury Agent initialized. Connected to PayPal Orders v2 rail and AG Grid blotter.',
-      details: 'Try asking: "Show flagged escrows", "Filter authorized holds", or "Audit delivery for Palantir".',
+      text: 'LedgerGuard Autonomous Treasury Agent online. Multi-tool controller connected to PayPal Orders v2, Invoicing v2, and AG Grid.',
+      details: 'Select a 1-click prompt chip below or type custom natural language treasury commands.',
     },
   ]);
 
-  useEffect(() => {
-    // Fetch session
-    fetch('/api/auth/me')
-      .then((res) => {
-        if (!res.ok) {
-          router.push('/login');
-          return null;
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data?.authenticated) {
-          setSession(data.user);
-          setDemoMfa(data.demoMfa);
-        }
-      })
-      .catch(() => router.push('/login'));
+  const fetchSession = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (!res.ok) {
+        router.push('/login');
+        return;
+      }
+      const data = await res.json();
+      if (data?.authenticated) {
+        setSession(data.user);
+        setDemoMfa(data.demoMfa);
+      }
+    } catch {
+      router.push('/login');
+    }
+  };
 
-    // Fetch PayPal status
-    fetch('/api/paypal/status')
-      .then((res) => res.json())
-      .then((data) => setPaypalStatus(data))
-      .catch(() => {});
-  }, [router]);
+  const fetchPayPalStatus = async () => {
+    try {
+      const res = await fetch('/api/paypal/status');
+      const data = await res.json();
+      setPaypalStatus(data);
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    fetchSession();
+    fetchPayPalStatus();
+  }, []);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -83,12 +92,35 @@ export default function DashboardLayout({
     router.refresh();
   };
 
-  const handleSendAiPrompt = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!aiPrompt.trim() || aiLoading) return;
+  // 1-Click Live RBAC Role Switcher (Admin <-> Auditor)
+  const handleToggleRole = async () => {
+    if (!session || switchingRole) return;
+    setSwitchingRole(true);
+    const targetRole = session.role === 'TREASURY_ADMIN' ? 'AUDITOR' : 'TREASURY_ADMIN';
 
-    const userText = aiPrompt.trim();
-    setAiMessages((prev) => [...prev, { role: 'user', text: userText }]);
+    try {
+      const res = await fetch('/api/auth/switch-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: targetRole }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSession(data.user);
+        router.refresh();
+      }
+    } catch (err) {
+      console.error('Role switch failed', err);
+    } finally {
+      setSwitchingRole(false);
+    }
+  };
+
+  const handleSendAiPrompt = async (promptToSend?: string) => {
+    const text = (promptToSend || aiPrompt).trim();
+    if (!text || aiLoading) return;
+
+    setAiMessages((prev) => [...prev, { role: 'user', text }]);
     setAiPrompt('');
     setAiLoading(true);
 
@@ -96,7 +128,7 @@ export default function DashboardLayout({
       const res = await fetch('/api/agent/command', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userText }),
+        body: JSON.stringify({ prompt: text }),
       });
       const data = await res.json();
 
@@ -110,7 +142,7 @@ export default function DashboardLayout({
           },
         ]);
 
-        // Broadcast custom event so Financial Blotter page can reactively filter AG Grid
+        // Dispatch directive event to AG Grid
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('ledgerguard:agent-directive', {
@@ -127,7 +159,7 @@ export default function DashboardLayout({
     } catch {
       setAiMessages((prev) => [
         ...prev,
-        { role: 'agent', text: 'Failed to communicate with Autonomous Treasury Agent.' },
+        { role: 'agent', text: 'Communication error with Autonomous Treasury Agent.' },
       ]);
     } finally {
       setAiLoading(false);
@@ -145,9 +177,8 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-[#090A0F] overflow-hidden">
-      {/* 1. Left Institutional Command Rail */}
+      {/* 1. Command Rail */}
       <aside className="w-64 bg-white dark:bg-[#11131A] border-r border-slate-200 dark:border-[#1E2230] flex flex-col shrink-0 select-none">
-        {/* Brand */}
         <div className="h-14 px-4 flex items-center gap-2.5 border-b border-slate-200 dark:border-[#1E2230]">
           <div className="w-8 h-8 rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center shrink-0">
             <Shield className="w-4 h-4" />
@@ -162,7 +193,6 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        {/* Navigation Links */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -185,7 +215,7 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        {/* AI Agent Quick Toggle */}
+        {/* AI Drawer Toggle */}
         <div className="p-3 border-t border-slate-200 dark:border-[#1E2230]">
           <button
             onClick={() => setIsAiDrawerOpen(!isAiDrawerOpen)}
@@ -213,7 +243,7 @@ export default function DashboardLayout({
             <button
               onClick={handleLogout}
               title="Sign Out"
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
@@ -221,33 +251,53 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* 2. Main Content Viewport */}
+      {/* 2. Main Viewport */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Top Institutional Live Status Bar */}
+        {/* Status Bar */}
         <header className="h-14 px-6 bg-white dark:bg-[#11131A] border-b border-slate-200 dark:border-[#1E2230] flex items-center justify-between shrink-0">
-          {/* Status Indicators */}
-          <div className="flex items-center gap-4 text-xs">
-            {/* PayPal Status */}
+          <div className="flex items-center gap-3 text-xs">
+            {/* Live PayPal Status */}
             <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
               <span className="font-semibold text-slate-700 dark:text-slate-300">
                 PayPal Sandbox:
               </span>
               <span className="font-mono text-slate-500 dark:text-slate-400">
-                {paypalStatus ? `${paypalStatus.latencyMs}ms latency` : 'Connecting...'}
+                {paypalStatus ? `${paypalStatus.latencyMs}ms` : 'Connecting...'}
               </span>
             </div>
 
-            {/* Security Posture Status */}
+            {/* Live RBAC Role Switcher */}
+            {session && (
+              <button
+                onClick={handleToggleRole}
+                disabled={switchingRole}
+                title="Click to live-switch RBAC role and test server-side 403 enforcement"
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-xs font-mono transition-colors ${
+                  session.role === 'TREASURY_ADMIN'
+                    ? 'bg-slate-900 text-white border-slate-800 dark:bg-slate-100 dark:text-slate-900 font-semibold'
+                    : 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300'
+                }`}
+              >
+                {session.role === 'TREASURY_ADMIN' ? (
+                  <UserCog className="w-3.5 h-3.5" />
+                ) : (
+                  <UserCheck className="w-3.5 h-3.5 text-amber-600" />
+                )}
+                <span>Role: {session.role} (Switch)</span>
+              </button>
+            )}
+
+            {/* OWASP Matrix Badge */}
             <a
               href="/security-audit"
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium"
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium"
             >
               <Shield className="w-3.5 h-3.5" />
-              <span>OWASP Matrix: 20/20 Passing</span>
+              <span>OWASP 20/20 Passing</span>
             </a>
 
-            {/* Demo Step-Up MFA Code for Judge Testing */}
+            {/* Demo Step-Up MFA Code */}
             {demoMfa && (
               <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-300 text-xs">
                 <Key className="w-3.5 h-3.5 text-amber-600" />
@@ -258,31 +308,26 @@ export default function DashboardLayout({
             )}
           </div>
 
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsAiDrawerOpen(!isAiDrawerOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Ask Agent</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setIsAiDrawerOpen(!isAiDrawerOpen)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors shadow-xs"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+            <span>Agent Drawer</span>
+          </button>
         </header>
 
-        {/* Page Content Body */}
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
 
       {/* 3. Dockable AI Treasury Drawer */}
       {isAiDrawerOpen && (
         <aside className="w-96 bg-white dark:bg-[#11131A] border-l border-slate-200 dark:border-[#1E2230] flex flex-col h-screen shrink-0 shadow-lg z-20 animate-in slide-in-from-right duration-200">
-          {/* Drawer Header */}
           <div className="h-14 px-4 flex items-center justify-between border-b border-slate-200 dark:border-[#1E2230]">
             <div className="flex items-center gap-2">
               <Bot className="w-4 h-4 text-blue-600" />
               <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                Treasury Agent Console
+                AI Treasury Agent Console
               </div>
             </div>
             <button
@@ -293,7 +338,6 @@ export default function DashboardLayout({
             </button>
           </div>
 
-          {/* Drawer Message Stream */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 font-sans text-xs">
             {aiMessages.map((msg, idx) => (
               <div
@@ -315,36 +359,42 @@ export default function DashboardLayout({
             {aiLoading && (
               <div className="p-3 rounded border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-500 text-xs flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                <span>Autonomous agent reasoning over PayPal orders...</span>
+                <span>Executing multi-tool agent action...</span>
               </div>
             )}
           </div>
 
-          {/* Quick Command Pills */}
-          <div className="px-4 py-2 border-t border-slate-200 dark:border-slate-800 flex flex-wrap gap-1.5">
-            {['Filter flagged', 'Show holds', 'Clear filter'].map((promptText) => (
-              <button
-                key={promptText}
-                onClick={() => {
-                  setAiPrompt(promptText);
-                }}
-                className="px-2 py-1 text-[11px] font-mono rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-              >
-                {promptText}
-              </button>
-            ))}
+          {/* 1-Click Judge Prompt Chips */}
+          <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+            <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold mb-2">
+              1-Click Judge Test Prompts
+            </div>
+            <div className="space-y-1.5">
+              {JUDGE_PROMPT_CHIPS.map((chip, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSendAiPrompt(chip)}
+                  className="w-full text-left p-1.5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-[11px] font-mono text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors truncate"
+                  title={chip}
+                >
+                  › {chip}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Drawer Input */}
           <form
-            onSubmit={handleSendAiPrompt}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendAiPrompt();
+            }}
             className="p-3 border-t border-slate-200 dark:border-[#1E2230] flex items-center gap-2"
           >
             <input
               type="text"
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder="Command agent or filter grid..."
+              placeholder="Command treasury agent..."
               className="flex-1 px-3 py-2 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-900"
             />
             <button

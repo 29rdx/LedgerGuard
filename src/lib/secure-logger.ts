@@ -1,13 +1,11 @@
-type LogLevel = 'info' | 'warn' | 'error' | 'security';
-
 // Sensitive patterns for redaction
 const REDACTION_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
   { pattern: /Bearer\s+([a-zA-Z0-9_\-\.]+)/gi, replacement: 'Bearer [REDACTED_TOKEN]' },
   { pattern: /Basic\s+([a-zA-Z0-9+/=]+)/gi, replacement: 'Basic [REDACTED_CREDENTIALS]' },
-  { pattern: /"client_secret"\s*:\s*"[^"]+"/gi, replacement: '"client_secret": "[REDACTED]"' },
-  { pattern: /"secret"\s*:\s*"[^"]+"/gi, replacement: '"secret": "[REDACTED]"' },
-  { pattern: /"password"\s*:\s*"[^"]+"/gi, replacement: '"password": "[REDACTED]"' },
-  { pattern: /"passwordHash"\s*:\s*"[^"]+"/gi, replacement: '"passwordHash": "[REDACTED]"' },
+  { pattern: /(?:"?client_secret"?)\s*:\s*"?[^",\s}]+"*/gi, replacement: 'client_secret: "[REDACTED]"' },
+  { pattern: /(?:"?secret"?)\s*:\s*"?[^",\s}]+"*/gi, replacement: 'secret: "[REDACTED]"' },
+  { pattern: /(?:"?password"?)\s*:\s*"?[^",\s}]+"*/gi, replacement: 'password: "[REDACTED]"' },
+  { pattern: /(?:"?passwordHash"?)\s*:\s*"?[^",\s}]+"*/gi, replacement: 'passwordHash: "[REDACTED]"' },
   { pattern: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13})\b/g, replacement: '[REDACTED_PAN]' },
   { pattern: /([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, replacement: '$1***@$2' },
 ];

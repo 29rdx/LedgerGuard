@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Shield, Key, Bell, CheckCircle2, RefreshCw, Send, AlertCircle } from 'lucide-react';
+import { Shield, Bell, CheckCircle2, RefreshCw, Send, Key, Save } from 'lucide-react';
 
 export default function SettingsPage() {
   const [paypalStatus, setPaypalStatus] = useState<{
@@ -15,10 +15,18 @@ export default function SettingsPage() {
   const [simulatingWebhook, setSimulatingWebhook] = useState(false);
   const [webhookResult, setWebhookResult] = useState<string | null>(null);
 
+  // Runtime Credentials Override State
+  const [customClientId, setCustomClientId] = useState('');
+  const [customClientSecret, setCustomClientSecret] = useState('');
+  const [customWebhookId, setCustomWebhookId] = useState('');
+  const [savingCreds, setSavingCreds] = useState(false);
+  const [credsMessage, setCredsMessage] = useState<string | null>(null);
+
   // Policy Form State
-  const [autoCaptureThreshold, setAutoCaptureThreshold] = useState('25000');
-  const [requireMfaAbove, setRequireMfaAbove] = useState('10000');
-  const [aiStrictness, setAiStrictness] = useState('STRICT');
+  const [maxAutoCaptureAmount, setMaxAutoCaptureAmount] = useState('2500');
+  const [mfaStepUpThreshold, setMfaStepUpThreshold] = useState('1000');
+  const [requireProofOfDelivery, setRequireProofOfDelivery] = useState(true);
+  const [maxAllowedRiskScore, setMaxAllowedRiskScore] = useState('35');
   const [policySaved, setPolicySaved] = useState(false);
 
   const checkPayPalStatus = async () => {
@@ -41,7 +49,47 @@ export default function SettingsPage() {
 
   useEffect(() => {
     checkPayPalStatus();
+
+    // Check active credentials
+    fetch('/api/paypal/credentials')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.hasCredentials) {
+          setCredsMessage(`Active PayPal Sandbox Credentials: ${d.maskedClientId}`);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  const handleSaveCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingCreds(true);
+    setCredsMessage(null);
+
+    try {
+      const res = await fetch('/api/paypal/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: customClientId,
+          clientSecret: customClientSecret,
+          webhookId: customWebhookId || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setCredsMessage('Live Sandbox Credentials configured successfully. Active mode: LIVE_SANDBOX.');
+        checkPayPalStatus();
+      } else {
+        setCredsMessage(`Failed to apply credentials: ${data.message || data.error}`);
+      }
+    } catch (err) {
+      setCredsMessage(`Error saving credentials: ${String(err)}`);
+    } finally {
+      setSavingCreds(false);
+    }
+  };
 
   const handleSimulateWebhook = async () => {
     setSimulatingWebhook(true);
@@ -91,17 +139,16 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Header */}
       <div>
         <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
           Terminal Settings & PayPal Sandbox Configuration
         </h1>
         <p className="text-xs text-slate-500 font-mono mt-0.5">
-          PayPal REST v2 Credentials · Webhook Signature Simulator · Treasury Policy Thresholds
+          PayPal REST v2 Credentials · Live Key Override · Webhook Simulator · Treasury Policies
         </p>
       </div>
 
-      {/* PayPal Sandbox Status Card */}
+      {/* Live PayPal Status */}
       <div className="p-5 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -136,7 +183,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="p-3 rounded bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] text-slate-400 uppercase">Target Environment</div>
+            <div className="text-[10px] text-slate-400 uppercase">Target Endpoint</div>
             <div className="text-xs font-semibold text-blue-600 mt-1">
               api-m.sandbox.paypal.com
             </div>
@@ -148,7 +195,80 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Webhook Signature Simulator */}
+      {/* Live Judge Runtime Credentials Override Form */}
+      <div className="p-5 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs space-y-4">
+        <div className="flex items-center gap-2">
+          <Key className="w-4 h-4 text-blue-600" />
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Judge Live Sandbox Credentials Override
+          </h2>
+        </div>
+        <p className="text-xs text-slate-600 dark:text-slate-400">
+          Paste your own PayPal Sandbox REST credentials here to test live API calls immediately without modifying server files. Credentials are saved in secure server memory.
+        </p>
+
+        {credsMessage && (
+          <div className="p-2.5 rounded bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-200 text-xs font-mono">
+            {credsMessage}
+          </div>
+        )}
+
+        <form onSubmit={handleSaveCredentials} className="space-y-3 text-xs">
+          <div>
+            <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+              PAYPAL_CLIENT_ID
+            </label>
+            <input
+              type="text"
+              required
+              value={customClientId}
+              onChange={(e) => setCustomClientId(e.target.value)}
+              placeholder="e.g. AVSvX128472910482..."
+              className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+              PAYPAL_CLIENT_SECRET
+            </label>
+            <input
+              type="password"
+              required
+              value={customClientSecret}
+              onChange={(e) => setCustomClientSecret(e.target.value)}
+              placeholder="e.g. EKh9284729104..."
+              className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+              PAYPAL_WEBHOOK_ID (Optional)
+            </label>
+            <input
+              type="text"
+              value={customWebhookId}
+              onChange={(e) => setCustomWebhookId(e.target.value)}
+              placeholder="e.g. 8WH1928471029"
+              className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
+            />
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              disabled={savingCreds}
+              className="flex items-center gap-1.5 px-4 py-2 rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>{savingCreds ? 'Applying...' : 'Apply Live Credentials'}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Webhook Simulator */}
       <div className="p-5 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -179,18 +299,18 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Treasury Policy Form */}
+      {/* Treasury Policy */}
       <div className="p-5 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs space-y-4">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-slate-700 dark:text-slate-300" />
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Autonomous Treasury Governance Policy
+            TreasuryPolicy Configuration (Active Policy)
           </h2>
         </div>
 
         {policySaved && (
           <div className="p-3 rounded text-xs font-mono border border-emerald-200 bg-emerald-50 text-emerald-900">
-            Policy parameters successfully updated.
+            Policy parameters updated successfully.
           </div>
         )}
 
@@ -198,27 +318,27 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                Automated Release Threshold (USD)
+                Max Auto Capture Amount (USD)
               </label>
               <input
                 type="number"
-                value={autoCaptureThreshold}
-                onChange={(e) => setAutoCaptureThreshold(e.target.value)}
+                value={maxAutoCaptureAmount}
+                onChange={(e) => setMaxAutoCaptureAmount(e.target.value)}
                 className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
-                Deliverable audits with confidence ≥ 70 below this ceiling auto-capture.
+                Deliverable audits with risk score below max ceiling auto-capture up to this limit.
               </span>
             </div>
 
             <div>
               <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                Mandatory Step-Up MFA Ceiling (USD)
+                MFA Step-Up Threshold (USD)
               </label>
               <input
                 type="number"
-                value={requireMfaAbove}
-                onChange={(e) => setRequireMfaAbove(e.target.value)}
+                value={mfaStepUpThreshold}
+                onChange={(e) => setMfaStepUpThreshold(e.target.value)}
                 className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
@@ -227,19 +347,31 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-              AI Auditor Strictness Tier
-            </label>
-            <select
-              value={aiStrictness}
-              onChange={(e) => setAiStrictness(e.target.value)}
-              className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
-            >
-              <option value="STRICT">STRICT (Zero-tolerance cryptographic attestation & SLA check)</option>
-              <option value="BALANCED">BALANCED (Allow minor artifact timestamp drift)</option>
-              <option value="PERMISSIVE">PERMISSIVE (Advisory audit score only)</option>
-            </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                Max Allowed Risk Score (0-100)
+              </label>
+              <input
+                type="number"
+                value={maxAllowedRiskScore}
+                onChange={(e) => setMaxAllowedRiskScore(e.target.value)}
+                className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                type="checkbox"
+                id="pod"
+                checked={requireProofOfDelivery}
+                onChange={(e) => setRequireProofOfDelivery(e.target.checked)}
+                className="w-4 h-4 rounded text-slate-900"
+              />
+              <label htmlFor="pod" className="text-xs text-slate-700 dark:text-slate-300 font-medium">
+                Mandate Proof-of-Delivery Attestation
+              </label>
+            </div>
           </div>
 
           <div className="pt-2 flex justify-end">
@@ -247,7 +379,7 @@ export default function SettingsPage() {
               type="submit"
               className="px-4 py-2 rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold"
             >
-              Save Policy Rules
+              Save Policy Parameters
             </button>
           </div>
         </form>

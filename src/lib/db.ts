@@ -12,8 +12,7 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 /**
  * Tenant-Scoped Database Wrapper for Strict Row-Level Multi-Tenant Isolation
- * Guarantees that any query executed through getTenantDb is strictly bounded
- * to the authenticated organizationId, preventing cross-tenant data leaks.
+ * Automatically bounds all read and write queries to the authenticated organizationId.
  */
 export function getTenantDb(organizationId: string) {
   if (!organizationId || typeof organizationId !== 'string') {
@@ -87,22 +86,34 @@ export function getTenantDb(organizationId: string) {
     policy: {
       findFirst: () => {
         return prisma.treasuryPolicy.findFirst({
+          where: { organizationId, isActive: true },
+        });
+      },
+      findMany: () => {
+        return prisma.treasuryPolicy.findMany({
           where: { organizationId },
+          orderBy: { createdAt: 'desc' },
         });
       },
       upsert: (data: {
-        maxHoldAmount: number;
-        autoCaptureThreshold: number;
-        requireMfaAbove: number;
+        id?: string;
+        name: string;
+        maxAutoCaptureAmount: number;
+        mfaStepUpThreshold: number;
         requireProofOfDelivery: boolean;
-        allowedCurrencies: string;
-        aiAuditStrictness: string;
+        maxAllowedRiskScore: number;
+        isActive: boolean;
       }) => {
         return prisma.treasuryPolicy.upsert({
-          where: { id: organizationId },
+          where: { id: data.id || 'default-policy-id' },
           create: {
             organizationId,
-            ...data,
+            name: data.name,
+            maxAutoCaptureAmount: data.maxAutoCaptureAmount,
+            mfaStepUpThreshold: data.mfaStepUpThreshold,
+            requireProofOfDelivery: data.requireProofOfDelivery,
+            maxAllowedRiskScore: data.maxAllowedRiskScore,
+            isActive: data.isActive,
           },
           update: data,
         });
@@ -116,23 +127,30 @@ export function getTenantDb(organizationId: string) {
             ...args?.where,
             organizationId,
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { timestamp: 'desc' },
         });
       },
       create: (data: {
-        userId?: string | null;
+        actor?: string;
         action: string;
-        entityType: string;
-        entityId: string;
-        details: string;
-        ipAddress?: string;
+        targetId: string;
+        paypalEndpoint?: string | null;
+        httpStatus?: number | null;
+        redactedDetails: string;
         previousHash: string;
-        currentHash: string;
+        recordHash: string;
       }) => {
         return prisma.auditLog.create({
           data: {
             organizationId,
-            ...data,
+            actor: data.actor || 'USER',
+            action: data.action,
+            targetId: data.targetId,
+            paypalEndpoint: data.paypalEndpoint || null,
+            httpStatus: data.httpStatus || 200,
+            redactedDetails: data.redactedDetails,
+            previousHash: data.previousHash,
+            recordHash: data.recordHash,
           },
         });
       },

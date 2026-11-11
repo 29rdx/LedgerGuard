@@ -63,3 +63,4 @@ export function checkRateLimit(key: string, limit: number, windowMs = 60000): Ra
     resetSeconds,
   };
 }
+
