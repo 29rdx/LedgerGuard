@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id           String              @id @default(uuid())
+  name         String
+  slug         String              @unique
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  users        User[]
+  transactions LedgerTransaction[]
+  policies     TreasuryPolicy[]
+  auditLogs    AuditLog[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String       @unique
+  name           String
+  passwordHash   String
+  role           String       @default("TREASURY_ADMIN") // "TREASURY_ADMIN" | "AUDITOR"
+  mfaSecret      String       @default("JBSWY3DPEHPK3PXP") // Default Base32 secret for instant demo testing
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  auditLogs      AuditLog[]
+
+  @@index([organizationId])
+}
+
+model LedgerTransaction {
+  id                    String       @id @default(uuid())
+  organizationId        String
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paypalOrderId         String?
+  paypalCaptureId       String?
+  paypalAuthorizationId String?
+  invoiceNumber         String?
+  counterpartyName      String
+  counterpartyEmail     String
+  type                  String       @default("ESCROW_AUTHORIZE") // ESCROW_AUTHORIZE | INVOICE_SETTLEMENT | DIRECT_DISBURSEMENT
+  amount                Float
+  currency              String       @default("USD")
+  status                String       @default("AUTHORIZED_HOLD") // AUTHORIZED_HOLD | CAPTURED | REFUNDED | PENDING_INVOICE | FLAGGED_DISCREPANCY
+  escrowConditions      String?      // Condition criteria for AI agent release
+  deliverableProofUrl   String?
+  deliverableProofHash  String?
+  auditScore            Int?         // 0-100 compliance confidence
+  auditNotes            String?
+  capturedAt            DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([paypalOrderId])
+}
+
+model TreasuryPolicy {
+  id                     String       @id @default(uuid())
+  organizationId         String
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                   String       @default("Default Institutional Policy")
+  maxHoldAmount          Float        @default(500000.0)
+  autoCaptureThreshold   Float        @default(25000.0)
+  requireMfaAbove        Float        @default(10000.0)
+  requireProofOfDelivery Boolean      @default(true)
+  allowedCurrencies      String       @default("USD,EUR,GBP")
+  aiAuditStrictness      String       @default("STRICT") // STRICT | BALANCED | PERMISSIVE
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id             String        @id @default(uuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action         String
+  entityType     String
+  entityId       String
+  details        String
+  ipAddress      String        @default("127.0.0.1")
+  previousHash   String
+  currentHash    String
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId])
+  @@index([currentHash])
+}
