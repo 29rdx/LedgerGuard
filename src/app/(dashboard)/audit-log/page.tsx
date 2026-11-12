@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ShieldCheck, CheckCircle2, Link2, Search, RefreshCw, Radio } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Link2, Search, RefreshCw, Radio, Download } from 'lucide-react';
 import { AuditLogRecord } from '@/types';
 
 interface VerificationReport {
@@ -140,6 +140,16 @@ export default function AuditLogPage() {
             <Radio className="w-3.5 h-3.5" />
             <span>{simulatingWebhook ? 'Dispatching Webhook...' : 'Live PayPal Webhook Simulator'}</span>
           </button>
+
+          <a
+            href="/api/export/audit-report"
+            download
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs"
+            title="Download SOC2 Compliance Cryptographic Audit Report (CSV)"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download SOC2 Compliance Report (CSV)</span>
+          </a>
 
           <button
             onClick={handleVerifyChain}

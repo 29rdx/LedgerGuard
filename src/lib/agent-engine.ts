@@ -3,6 +3,7 @@ import { AgentActionDirective, FinancialBlotterRow } from '@/types';
 import { validateSsrfUrl } from './ssrf-guard';
 import { secureLogger } from './secure-logger';
 import { paypalClient } from './paypal-client';
+import { aiCircuitBreaker } from './circuit-breaker';
 
 export interface AuditDeliveryParams {
   transactionId: string;
@@ -36,11 +37,27 @@ export const JUDGE_PROMPT_CHIPS = [
 export const agentEngine = {
   /**
    * Processes natural language commands into structured multi-tool agent actions
+   * Protected by Circuit Breaker with seamless Deterministic Policy Fallback.
    */
   async processCommand(
     prompt: string,
     organizationId?: string
   ): Promise<AgentActionDirective> {
+    return aiCircuitBreaker.execute(
+      async () => {
+        return this.parseCommandCore(prompt, false);
+      },
+      () => {
+        secureLogger.warn('Executing deterministic policy engine fallback due to circuit breaker trip.');
+        return this.parseCommandCore(prompt, true);
+      }
+    );
+  },
+
+  /**
+   * Core command parser with optional deterministic fallback mode
+   */
+  parseCommandCore(prompt: string, isFallback: boolean): AgentActionDirective {
     const clean = prompt.trim();
     const lower = clean.toLowerCase();
 
@@ -52,8 +69,10 @@ export const agentEngine = {
           filterColumn: 'status',
           filterValue: 'FLAGGED_DISPUTE',
           summary: "Tool 'filter_ag_grid_ledger' applied: Isolating FLAGGED_DISPUTE transactions.",
-          confidence: 0.98,
+          confidence: isFallback ? 0.85 : 0.98,
           recommendedNextStep: 'Inspect deliverable proof discrepancy notes or initiate vendor dispute.',
+          isDegraded: isFallback,
+          degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
         };
       }
 
@@ -62,8 +81,10 @@ export const agentEngine = {
           intent: 'filter_ag_grid_ledger',
           filterMinAmount: 1000,
           summary: "Tool 'filter_ag_grid_ledger' applied: Displaying transactions with hold amount > $1,000 USD.",
-          confidence: 0.97,
+          confidence: isFallback ? 0.85 : 0.97,
           recommendedNextStep: 'Review Step-Up MFA status for high-value releases.',
+          isDegraded: isFallback,
+          degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
         };
       }
 
@@ -73,8 +94,10 @@ export const agentEngine = {
           filterColumn: 'status',
           filterValue: 'AUTHORIZED_HOLD',
           summary: "Tool 'filter_ag_grid_ledger' applied: Filtering for active PayPal AUTHORIZED_HOLD escrows.",
-          confidence: 0.99,
+          confidence: isFallback ? 0.88 : 0.99,
           recommendedNextStep: 'Run automated delivery audit on selected escrow.',
+          isDegraded: isFallback,
+          degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
         };
       }
 
@@ -84,7 +107,9 @@ export const agentEngine = {
           filterColumn: 'status',
           filterValue: 'CAPTURED',
           summary: "Tool 'filter_ag_grid_ledger' applied: Displaying captured and settled disbursements.",
-          confidence: 0.96,
+          confidence: isFallback ? 0.85 : 0.96,
+          isDegraded: isFallback,
+          degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
         };
       }
 
@@ -95,6 +120,8 @@ export const agentEngine = {
           filterValue: '',
           summary: "Tool 'filter_ag_grid_ledger' reset: Showing all institutional transactions.",
           confidence: 1.0,
+          isDegraded: isFallback,
+          degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
         };
       }
     }
@@ -106,6 +133,18 @@ export const agentEngine = {
       const amountMatch = clean.match(/\$([0-9,]+(?:\.[0-9]{2})?)/);
       if (amountMatch) {
         amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+      }
+
+      // Hard deterministic rule: Escrows exceeding $10,000 require manual board signoff
+      if (amount > 10000) {
+        return {
+          intent: 'query_treasury',
+          summary: `Deterministic Policy Enforced: Escrow creation for $${amount.toFixed(2)} USD exceeds the autonomous $10,000 ceiling. Disbursement rejected for mandatory board sign-off.`,
+          confidence: 1.0,
+          recommendedNextStep: 'Submit formal corporate governance authorization request.',
+          isDegraded: isFallback,
+          degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
+        };
       }
 
       let vendorName = 'Vertex Semiconductor';
@@ -124,8 +163,10 @@ export const agentEngine = {
           aiRiskScore: 14,
         },
         summary: `Tool 'create_paypal_escrow_order' parsed: Authorized $${amount.toFixed(2)} USD escrow hold for '${vendorName}' via PayPal Orders v2 rail.`,
-        confidence: 0.95,
+        confidence: isFallback ? 0.88 : 0.95,
         recommendedNextStep: 'Inspect order in Escrow Studio or test 1-click capture.',
+        isDegraded: isFallback,
+        degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
       };
     }
 
@@ -140,8 +181,10 @@ export const agentEngine = {
       return {
         intent: 'create_paypal_invoice',
         summary: `Tool 'create_paypal_invoice' parsed: Generated Invoicing v2 draft for 'ops@cloudscale.io' for $${amount.toFixed(2)} USD (Kubernetes security audit).`,
-        confidence: 0.94,
+        confidence: isFallback ? 0.85 : 0.94,
         recommendedNextStep: 'Review draft in Accounts-Payable Invoicing v2 tab.',
+        isDegraded: isFallback,
+        degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
       };
     }
 
@@ -150,8 +193,10 @@ export const agentEngine = {
       return {
         intent: 'audit_and_release_escrow',
         summary: "Tool 'audit_and_release_escrow' triggered: Inspecting proof-of-delivery cryptographic hash and policy threshold rules.",
-        confidence: 0.96,
+        confidence: isFallback ? 0.89 : 0.96,
         recommendedNextStep: 'Triggered audit scan across active holds.',
+        isDegraded: isFallback,
+        degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
       };
     }
 
@@ -162,6 +207,8 @@ export const agentEngine = {
         summary: "Tool 'run_security_posture_scan' invoked: Executing live 20-point penetration and compliance assertions.",
         confidence: 0.99,
         recommendedNextStep: 'View signed report at /security-audit.',
+        isDegraded: isFallback,
+        degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
       };
     }
 
@@ -169,8 +216,10 @@ export const agentEngine = {
     return {
       intent: 'query_treasury',
       summary: `Autonomous Treasury Agent analyzed: "${prompt}". Ready to execute PayPal Orders v2 escrow, Invoicing v2 sync, or AG Grid operations.`,
-      confidence: 0.88,
+      confidence: isFallback ? 0.80 : 0.88,
       recommendedNextStep: 'Use one of the prompt chips below for 1-click execution.',
+      isDegraded: isFallback,
+      degradationNotice: isFallback ? 'LLM Degraded: Operating on Deterministic Ruleset' : undefined,
     };
   },
 

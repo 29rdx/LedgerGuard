@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   AlertTriangle,
 } from 'lucide-react';
+import { TreasuryInsights } from '@/components/TreasuryInsights';
 import {
   FinancialBlotterRow,
   AgentActionDirective,
@@ -846,6 +847,9 @@ export default function TreasuryDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Visual Financial Analytics & Risk Telemetry */}
+      <TreasuryInsights />
 
       {/* Main AG Grid Blotter */}
       <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg shadow-xs overflow-hidden">

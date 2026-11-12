@@ -40,3 +40,4 @@
    - 2:00 - 2:30 (30s)
    - 2:30 - 2:50 (20s)
    - **Total:** 2 minutes 50 seconds. Leaves a comfortable 10-second buffer under YouTube / Devpost's 3:00 hard ceiling.
+

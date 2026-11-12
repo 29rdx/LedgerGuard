@@ -221,6 +221,8 @@ export interface AgentActionDirective {
   summary: string;
   confidence: number;
   recommendedNextStep?: string;
+  isDegraded?: boolean;
+  degradationNotice?: string;
 }
 
 export interface AgentDialogueMessage {

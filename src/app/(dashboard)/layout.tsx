@@ -35,6 +35,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [session, setSession] = useState<UserSession | null>(null);
   const [demoMfa, setDemoMfa] = useState<{ code: string; secondsRemaining: number } | null>(null);
+  const [isLlmDegraded, setIsLlmDegraded] = useState(false);
   const [paypalStatus, setPaypalStatus] = useState<{
     connected: boolean;
     latencyMs: number;
@@ -96,8 +97,19 @@ export default function DashboardLayout({
       }
     };
 
+    const handleAgentDirective = (e: Event) => {
+      const customEvent = e as CustomEvent<{ isDegraded?: boolean }>;
+      if (customEvent.detail?.isDegraded) {
+        setIsLlmDegraded(true);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('ledgerguard:agent-directive', handleAgentDirective);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('ledgerguard:agent-directive', handleAgentDirective);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -301,6 +313,17 @@ export default function DashboardLayout({
                 )}
                 <span>Role: {session.role} (Switch)</span>
               </button>
+            )}
+
+            {/* Circuit Breaker LLM Degraded Badge */}
+            {isLlmDegraded && (
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-mono font-medium animate-pulse"
+                title="Circuit Breaker engaged: LLM latency or rate limit triggered fallback to Deterministic Policy Ruleset"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <span>LLM Degraded: Operating on Deterministic Ruleset</span>
+              </div>
             )}
 
             {/* OWASP Matrix Badge */}

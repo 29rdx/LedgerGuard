@@ -1,0 +1,60 @@
+name: LedgerGuard Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit-and-build:
+    name: Security Penetration Test & Production Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Locked Dependencies
+        run: npm ci
+
+      - name: Generate Prisma ORM Client
+        run: npx prisma generate
+
+      - name: Push In-Memory Test Database
+        run: npx prisma db push --skip-generate
+        env:
+          DATABASE_URL: 'file:./dev.db'
+
+      - name: Seed Institutional Test Data
+        run: npm run db:seed
+        env:
+          DATABASE_URL: 'file:./dev.db'
+
+      - name: Run Automated Cyber Security Pen-Test Suite
+        run: npm run test:security
+        env:
+          NODE_ENV: test
+          DATABASE_URL: 'file:./dev.db'
+          JWT_SECRET: 'ledgerguard_ci_cd_test_secret_32bytes_minimum_entropy'
+
+      - name: Verify ESLint Rules
+        run: npm run lint
+
+      - name: Execute Next.js Standalone Production Build
+        run: npm run build
+        env:
+          NODE_ENV: production
+          DATABASE_URL: 'file:./dev.db'
+          JWT_SECRET: 'ledgerguard_ci_cd_test_secret_32bytes_minimum_entropy'
+          NEXT_TELEMETRY_DISABLED: 1
