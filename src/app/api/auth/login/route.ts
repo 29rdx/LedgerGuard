@@ -11,10 +11,12 @@ import {
 import { checkRateLimit } from '@/lib/rate-limit';
 import { secureLogger } from '@/lib/secure-logger';
 import { computeBlockHash } from '@/lib/crypto-audit';
+import { verifyTotp, getDemoMfaCode } from '@/lib/mfa';
 
 const LoginSchema = z.object({
   email: z.string().email().optional(),
   password: z.string().min(6).optional(),
+  totpCode: z.string().optional(),
   ephemeralJudge: z.boolean().optional(),
   role: z.enum(['TREASURY_ADMIN', 'AUDITOR']).optional(),
 });
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Validation Error', details: parsed.error.format() }, { status: 400 });
     }
 
-    const { email, password, ephemeralJudge, role } = parsed.data;
+    const { email, password, totpCode, ephemeralJudge, role } = parsed.data;
 
     interface TargetUser {
       id: string;
@@ -47,6 +49,8 @@ export async function POST(request: NextRequest) {
       name: string;
       role: 'TREASURY_ADMIN' | 'AUDITOR';
       passwordHash: string;
+      mfaEnabled: boolean;
+      mfaSecret: string;
       organizationId: string;
       organization: { id: string; name: string };
     }
@@ -90,6 +94,29 @@ export async function POST(request: NextRequest) {
       if (!passwordValid) {
         secureLogger.security('LOGIN_FAILED_BAD_PASSWORD', { email, ip });
         return NextResponse.json({ error: 'Invalid institutional credentials' }, { status: 401 });
+      }
+
+      // Check MFA requirement
+      if (found.mfaEnabled) {
+        if (!totpCode) {
+          const demoMfa = getDemoMfaCode(found.mfaSecret);
+          return NextResponse.json({
+            requiresMfa: true,
+            email: found.email,
+            message: 'TOTP 6-digit challenge required for enterprise compliance.',
+            demoCode: demoMfa.code,
+            secondsRemaining: demoMfa.secondsRemaining,
+          });
+        }
+
+        const validTotp = verifyTotp(totpCode, found.mfaSecret);
+        if (!validTotp) {
+          secureLogger.security('LOGIN_MFA_FAILED', { email: found.email, ip });
+          return NextResponse.json(
+            { error: 'Invalid MFA verification code', message: 'The 6-digit TOTP code is incorrect or expired.' },
+            { status: 401 }
+          );
+        }
       }
 
       targetUser = found as unknown as TargetUser;

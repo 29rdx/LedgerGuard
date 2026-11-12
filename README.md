@@ -124,10 +124,17 @@ npm run dev
 ```
 Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
-### 3. Instant 1-Click Judge Access
-On the login screen, click either:
-- **"Enter as VP Treasury (Admin)"** (`treasury@apexcapital.io`) — Full escrow placement, capture, and void rights.
-- **"Enter as Lead Auditor (Read-Only)"** (`auditor@apexcapital.io`) — Compliance view and audit trail analysis.
+### 3. Instant 1-Click Judge Access & Authentication Methods
+The split-screen login portal at `/login` provides 3 institutional authentication mechanisms:
+- **1-Click Judge Ephemeral Access:** Click **"VP Treasury (Admin)"** (`treasury@apexcapital.io`) or **"Lead Auditor"** (`auditor@apexcapital.io`) for zero-friction instant sandbox access.
+- **Enterprise Password & MFA:** Sign in with corporate credentials (`treasury@apexcapital.io` / `TreasuryAdmin2026!#`) to experience the interactive 6-digit RFC 6238 TOTP challenge with live 30-second countdown.
+- **Passwordless Magic Links:** Request a signed HS256 JWT magic link token for 1-click passwordless login.
+
+### 4. Enterprise Onboarding & API Vaulting
+New enterprise tenants can configure their institutional profile at `/onboarding`:
+- **Corporate Entity Registration:** Sets legal entity name, jurisdiction (e.g. Delaware C-Corp), and settlement currency.
+- **Hardware-Accelerated AES-256-GCM Vault:** Securely vaults `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` with 96-bit IV and 128-bit authentication tags before persistent disk storage, with live OAuth connectivity testing.
+- **Treasury Policy Templates:** 1-click activation of *Strict Human-in-the-Loop*, *Balanced Autonomous Escrow*, or *High-Velocity Treasury* policies.
 
 ---
 

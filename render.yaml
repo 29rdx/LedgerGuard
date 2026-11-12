@@ -1,10 +1,16 @@
+# ==============================================================================
+# LedgerGuard Institutional Treasury Terminal - Render Production Blueprint
+# Category: Best Use of Render ($1,000) & Grand Prize ($12,000)
+# ==============================================================================
 services:
   - type: web
     name: ledgerguard-terminal
     runtime: node
     plan: standard
+    region: oregon
     buildCommand: npm install && npx prisma db push && npx prisma db seed && npm run build
     startCommand: npm run start
+    healthCheckPath: /api/security/verify-all
     envVars:
       - key: NODE_ENV
         value: production
@@ -25,3 +31,9 @@ services:
       - key: MFA_ENFORCEMENT_ENABLED
         value: "true"
 
+databases:
+  - name: ledgerguard-postgres
+    plan: starter
+    databaseName: ledgerguard_prod
+    user: ledgerguard_admin
+    region: oregon

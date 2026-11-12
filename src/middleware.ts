@@ -16,8 +16,9 @@ export async function middleware(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
 
   // 1. Enforce Sliding-Window Rate Limiting
-  const rateLimitKey = `${ip}:${pathname.startsWith('/api/auth') ? 'auth' : 'general'}`;
-  const rateLimitMax = pathname.startsWith('/api/auth') ? 15 : 120; // 15 auth attempts/min, 120 general/min
+  const isAuthPath = pathname.startsWith('/api/auth');
+  const rateLimitKey = `${ip}:${isAuthPath ? 'auth' : 'general'}`;
+  const rateLimitMax = isAuthPath ? 25 : 150;
   const rateCheck = checkRateLimit(rateLimitKey, rateLimitMax, 60000);
 
   if (!rateCheck.success) {
@@ -68,8 +69,10 @@ export async function middleware(request: NextRequest) {
   // 4. Public unauthenticated paths
   const isPublicPage = pathname === '/login';
   const isPublicApi =
-    pathname === '/api/auth/login' ||
-    pathname === '/api/auth/me' ||
+    pathname.startsWith('/api/auth/login') ||
+    pathname.startsWith('/api/auth/magic-link') ||
+    pathname.startsWith('/api/auth/me') ||
+    pathname.startsWith('/api/auth/logout') ||
     pathname === '/api/paypal/webhooks' ||
     pathname === '/api/security/verify-all';
 
@@ -81,7 +84,7 @@ export async function middleware(request: NextRequest) {
       const { payload } = await jwtVerify(sessionToken, getJwtSecretKey());
       verifiedPayload = payload;
     } catch {
-      // Invalid/expired token
+      // Invalid or expired token
     }
   }
 
@@ -91,6 +94,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/') &&
     mutatingMethods.includes(request.method) &&
     pathname !== '/api/auth/login' &&
+    !pathname.startsWith('/api/auth/magic-link') &&
+    pathname !== '/api/auth/logout' &&
     pathname !== '/api/paypal/webhooks' // PayPal webhooks authenticate via transmission headers
   ) {
     const csrfCookie = request.cookies.get(CSRF_COOKIE_NAME)?.value;
@@ -117,7 +122,7 @@ export async function middleware(request: NextRequest) {
       );
     }
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
+    loginUrl.searchParams.set('returnUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -152,6 +157,7 @@ export async function middleware(request: NextRequest) {
   // 8. Generate response with CSP & Security Headers
   const response = NextResponse.next();
   response.headers.set('Content-Security-Policy', cspHeader);
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-XSS-Protection', '1; mode=block');

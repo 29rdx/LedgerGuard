@@ -115,6 +115,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     { label: 'Audit Trail Explorer', path: '/audit-log', icon: History, key: '4' },
     { label: 'Security Posture Suite', path: '/security-audit', icon: Shield, key: '5' },
     { label: 'Sandbox & Settings', path: '/settings', icon: Settings, key: '6' },
+    { label: 'Enterprise Onboarding & Vault', path: '/onboarding', icon: Key, key: '7' },
   ];
 
   const suggestedCommands = [
@@ -227,3 +228,4 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     </div>
   );
 }
+

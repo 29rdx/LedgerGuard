@@ -20,6 +20,7 @@ import {
   UserCheck,
   UserCog,
   Search,
+  Building2,
 } from 'lucide-react';
 import { UserSession } from '@/types';
 import { JUDGE_PROMPT_CHIPS } from '@/lib/agent-engine';
@@ -185,6 +186,7 @@ export default function DashboardLayout({
     { label: 'Invoicing v2', href: '/invoices', icon: FileSpreadsheet },
     { label: 'Audit Trail', href: '/audit-log', icon: History },
     { label: 'Security Posture', href: '/security-audit', icon: Lock },
+    { label: 'Enterprise Onboarding', href: '/onboarding', icon: Building2 },
     { label: 'Settings & Sandbox', href: '/settings', icon: Settings },
   ];
 

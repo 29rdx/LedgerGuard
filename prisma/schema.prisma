@@ -8,14 +8,17 @@ datasource db {
 }
 
 model Organization {
-  id               String              @id @default(uuid())
-  name             String
-  paypalMerchantId String?             @default("MERCHANT-APEX-GLOBAL-01")
-  createdAt        DateTime            @default(now())
-  users            User[]
-  transactions     LedgerTransaction[]
-  policies         TreasuryPolicy[]
-  auditLogs        AuditLog[]
+  id                  String              @id @default(uuid())
+  name                String
+  paypalMerchantId    String?             @default("MERCHANT-APEX-GLOBAL-01")
+  jurisdiction        String?             @default("Delaware, USA (C-Corp)")
+  currency            String?             @default("USD")
+  onboardingCompleted Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  users               User[]
+  transactions        LedgerTransaction[]
+  policies            TreasuryPolicy[]
+  auditLogs           AuditLog[]
 }
 
 model User {

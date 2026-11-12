@@ -106,6 +106,22 @@ LedgerGuard is an institutional treasury operating system that combines autonomo
   - Sliding-window in-memory Rate Limiting.
   - PAN, token, and secret redaction logger.
 
+### 8. Elite Authentication Portal & Passwordless Magic Links (`/login`)
+- **Split-Screen Institutional Portal:** High-contrast Inter white authentication panel paired with a deep obsidian (`#090A0F`) architectural panel featuring a dynamic vector representation of the SHA-256 cryptographic hash chain.
+- **1-Click Judge Ephemeral Provisioning:** Instant 1-click access buttons (*"VP Treasury (Admin)"* and *"Lead Auditor"*) that provision an isolated sandbox session with pre-seeded data—zero typing required.
+- **Passwordless Magic Links:** Cryptographically signed HS256 JWT tokens with 15-minute expirations for 1-click passwordless authentication.
+- **Interactive RFC 6238 TOTP MFA:** Smooth transition to a 6-digit verification code screen with auto-advancing digit inputs, a live 30-second countdown timer, and an automated judge testing code chip.
+
+### 9. Market-Ready Enterprise Onboarding (`/onboarding`)
+- **Multi-Step Institutional Setup:** Stepper flow guiding new enterprise tenants through Corporate Legal Profile (Jurisdiction, Currency, Operating Model), PayPal Developer Platform Vaulting, and Autonomous Policy Guardrails.
+- **Direct AES-256-GCM Vaulting:** PayPal Client Secrets are encrypted client-to-server with AES-256-GCM before persistent disk storage, accompanied by an instant OAuth connectivity test against `api-m.sandbox.paypal.com`.
+- **Policy Template Engine:** Instant selection between *Strict Human-in-the-Loop*, *Balanced Autonomous Escrow*, and *High-Velocity Treasury* templates with customizable auto-capture limits and risk thresholds.
+- **Genesis Block Mining:** Commits a cryptographic audit block upon onboarding completion.
+
+### 10. Institutional Reliability & Fail-Safe Architecture
+- **Global Circuit Breaker (`src/app/global-error.tsx`):** Branded, dark-mode recovery screen that catches unhandled runtime boundaries, freezes pending authorizations to protect escrow funds, displays SHA-256 diagnostic digests, and provides session reset actions.
+- **Production Render Cloud Blueprint (`render.yaml`):** Production-hardened infrastructure-as-code specification defining a scalable Next.js web service, a PostgreSQL database, and Redis cache.
+
 ---
 
 ## 🛠️ Architecture & Tech Stack
@@ -149,7 +165,7 @@ LedgerGuard is an institutional treasury operating system that combines autonomo
 
 | Time | Visual / Screen Action | Voiceover / Audio Script | Click Action |
 | :--- | :--- | :--- | :--- |
-| **0:00 - 0:20** | **Login Portal (`/login`)** showing crisp institutional Alabaster/Slate UI with PayPal AI Hackathon badges. | *"Welcome to LedgerGuard — an institutional Treasury, Conditional Authorize-and-Hold Escrow, and Reconciliation Terminal built on PayPal Orders v2, Invoicing v2, and AG Grid. Global B2B commerce settles over $2.4 trillion each year, but companies still face the twin risks of upfront non-delivery and painful post-payment disputes."* | Click **"VP Treasury (Admin)"** 1-click ephemeral login button. |
+| **0:00 - 0:20** | **Login Portal (`/login`) & Enterprise Onboarding (`/onboarding`)** showing crisp split-screen design, cryptographic hash chain animation, 1-Click Judge Ephemeral Access, and Magic Links. | *"Welcome to LedgerGuard — an institutional Treasury, Conditional Authorize-and-Hold Escrow, and Reconciliation Terminal built on PayPal Orders v2, Invoicing v2, and AG Grid. Notice our split-screen authentication portal with 1-click Judge Ephemeral Access, passwordless magic links, and hardware-accelerated AES-256-GCM vaulting."* | Click **"VP Treasury (Admin)"** 1-click ephemeral login button. |
 | **0:20 - 0:45** | **Main Dashboard (`/`)** displays the 4-KPI metric strip and the high-density **AG Grid Financial Blotter**. | *"Upon login, we enter the Treasury Blotter. Powered by AG Grid React 36.2, LedgerGuard renders high-density tabular records with monospace financial numerals. Every row represents an active PayPal escrow hold, showing the Order ID, counterparty, amount, and an AI Risk Meter."* | Hover over rows, sort by amount, and click copy icon on an Order ID to show clipboard toast. |
 | **0:45 - 1:10** | Open **Raw PayPal JSON Inspector** and test **Natural Language AI Filtering**. | *"Notice the Code icon: with one click, auditors can inspect the authentic raw PayPal Orders v2 JSON payload. Now watch our Agentic Treasury Drawer: I can type natural language commands or click a prompt chip like 'Filter blotter to show flagged escrows'. The agent directly invokes the AG Grid API (`setFilterModel`) to filter the blotter live on screen!"* | Click Code icon on order to inspect JSON modal; open Agent Drawer and click "Filter blotter to show flagged escrows". |
 | **1:10 - 1:35** | **Bulk Multi-Row Selection & AI Audit Execution**. | *"Let's test multi-row operations. I select three active authorizations and click 'Bulk AI Audit'. Our autonomous controller inspects each deliverable artifact, checks cryptographic SHA-256 hashes against contractual specifications, and passes compliant payouts in batch."* | Select rows using checkboxes, click **"Bulk AI Audit Selected"**, watch progress counter complete. |
