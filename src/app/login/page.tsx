@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Logo3D } from '@/components/Logo3D';
 import {
   Shield,
   KeyRound,
@@ -215,27 +216,25 @@ function LoginForm() {
   return (
     <div className="min-h-screen w-full flex bg-slate-50 dark:bg-[#090A0F]">
       {/* ============================================================ */}
-      {/* LEFT COLUMN: Clean, High-Contrast White Authentication Panel */}
+      {/* LEFT COLUMN: Translucent Liquid Glass Authentication Panel */}
       {/* ============================================================ */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 bg-white dark:bg-[#11131A] border-r border-slate-200 dark:border-[#1E2230]">
+      <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 liquid-glass-elevated border-r border-white/10 dark:border-white/10 backdrop-blur-3xl relative z-10">
         {/* Top Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center shadow-xs">
-              <Shield className="w-5 h-5" />
-            </div>
+          <div className="flex items-center gap-3">
+            <Logo3D size="md" />
             <div>
-              <div className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
+              <div className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
                 LedgerGuard
               </div>
-              <div className="text-[10px] uppercase font-mono tracking-wider text-slate-500">
+              <div className="text-[10px] uppercase font-mono tracking-wider text-slate-500 dark:text-slate-400">
                 Institutional Treasury & Escrow Terminal
               </div>
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-xs font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
             PayPal AI Hackathon
           </div>
         </div>
@@ -243,13 +242,13 @@ function LoginForm() {
         {/* Center Auth Form */}
         <div className="w-full max-w-md mx-auto my-auto py-8">
           {/* Prominent Judge Quick-Access Hero Button */}
-          <div className="mb-6 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 shadow-xs">
+          <div className="mb-6 p-5 rounded-2xl liquid-glass-card border border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-cyan-500/5 to-transparent shadow-[0_8px_32px_rgba(5,150,105,0.2)] specular-border">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" />
                 Hackathon Judge 1-Click Access
               </span>
-              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                 Zero Setup
               </span>
             </div>
@@ -261,7 +260,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => handleEphemeralJudgeLogin('TREASURY_ADMIN')}
                 disabled={loading}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
               >
                 <KeyRound className="w-3.5 h-3.5" />
                 VP Treasury (Admin)
@@ -569,11 +568,12 @@ function LoginForm() {
         {/* Cryptographic Hash Chain Diagram & Architectural Visual */}
         <div className="relative z-10 my-auto py-8">
           <div className="mb-6">
-            <div className="text-xs font-mono uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-emerald-400" />
+            <Logo3D size="xl" className="mb-6 drop-shadow-[0_16px_36px_rgba(0,112,186,0.6)]" />
+            <div className="text-xs font-mono uppercase tracking-wider text-cyan-400 mb-1 flex items-center gap-1.5">
+              <Cpu className="w-4 h-4 text-cyan-400" />
               Cryptographic Audit Architecture
             </div>
-            <h2 className="text-2xl font-semibold tracking-tight text-white">
+            <h2 className="text-2xl font-bold tracking-tight text-white">
               Autonomous Verification & Proof-of-Delivery Escrow
             </h2>
             <p className="text-xs text-slate-400 mt-2 max-w-lg leading-relaxed">

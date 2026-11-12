@@ -47,23 +47,28 @@ export const FinancialBlotterGrid = memo(function FinancialBlotterGrid({
   defaultColDef,
 }: FinancialBlotterGridProps) {
   return (
-    <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg shadow-xs overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-200 dark:border-[#1E2230] flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/40">
-        <div className="flex items-center gap-2">
-          <Coins className="w-4 h-4 text-slate-700 dark:text-slate-300" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+    <div className="liquid-glass rounded-2xl border border-white/20 dark:border-white/10 shadow-xl overflow-hidden specular-border">
+      <div className="px-5 py-3.5 border-b border-white/10 dark:border-white/10 flex flex-wrap items-center justify-between gap-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-cyan-400">
+            <Coins className="w-4 h-4" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
             Live Financial Blotter ({rowData.length} entries)
           </span>
         </div>
 
         <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
-          <span>ag-grid-react 36.2</span>
+          <span className="text-cyan-400 font-semibold">ag-grid-react 36.2</span>
           <span>·</span>
           <span>Multi-Row Selection</span>
           <span>·</span>
           <span>Floating Filters</span>
           <span>·</span>
-          <span>SSE Real-Time Sync</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>SSE Real-Time Sync</span>
+          </span>
         </div>
       </div>
 
@@ -87,3 +92,4 @@ export const FinancialBlotterGrid = memo(function FinancialBlotterGrid({
 });
 
 export default FinancialBlotterGrid;
+

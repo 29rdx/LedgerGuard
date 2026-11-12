@@ -26,6 +26,7 @@ import { UserSession } from '@/types';
 import { JUDGE_PROMPT_CHIPS } from '@/lib/agent-engine';
 import { CommandPalette } from '@/components/CommandPalette';
 import { DemoFailsafeProvider, DemoFailsafeIndicator } from '@/components/DemoFailsafeContext';
+import { Logo3D } from '@/components/Logo3D';
 
 export default function DashboardLayout({
   children,
@@ -205,16 +206,15 @@ export default function DashboardLayout({
 
   return (
     <DemoFailsafeProvider>
-      <div className="flex h-screen w-full bg-slate-50 dark:bg-[#090A0F] overflow-hidden">
+      <div className="flex h-screen w-full bg-slate-50 dark:bg-[#07090E] overflow-hidden relative">
       {/* 1. Command Rail */}
-      <aside className="w-64 bg-white dark:bg-[#11131A] border-r border-slate-200 dark:border-[#1E2230] flex flex-col shrink-0 select-none">
-        <div className="h-14 px-4 flex items-center gap-2.5 border-b border-slate-200 dark:border-[#1E2230]">
-          <div className="w-8 h-8 rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center shrink-0">
-            <Shield className="w-4 h-4" />
-          </div>
+      <aside className="w-64 liquid-glass border-r border-white/10 dark:border-white/10 flex flex-col shrink-0 select-none relative z-20 backdrop-blur-2xl">
+        <div className="h-14 px-4 flex items-center gap-2.5 border-b border-white/10 dark:border-white/10">
+          <Logo3D size="sm" />
           <div className="overflow-hidden">
-            <div className="text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
-              LedgerGuard
+            <div className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-tight flex items-center gap-1.5">
+              <span>LedgerGuard</span>
+              <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">3D</span>
             </div>
             <div className="text-[10px] uppercase font-mono text-slate-400 truncate">
               {session?.organizationName || 'Apex Global Capital'}
@@ -230,10 +230,10 @@ export default function DashboardLayout({
               <a
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded transition-colors ${
+                className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-all ${
                   active
-                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
+                    ? 'bg-gradient-to-r from-blue-600/90 to-cyan-500/90 text-white font-semibold shadow-[0_4px_16px_rgba(0,112,186,0.35)] border border-cyan-400/30'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-100 hover:backdrop-blur-md'
                 }`}
               >
                 <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-inherit' : 'text-slate-400'}`} />
@@ -283,11 +283,11 @@ export default function DashboardLayout({
       {/* 2. Main Viewport */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Status Bar */}
-        <header className="h-14 px-6 bg-white dark:bg-[#11131A] border-b border-slate-200 dark:border-[#1E2230] flex items-center justify-between shrink-0">
+        <header className="h-14 px-6 liquid-glass border-b border-white/10 dark:border-white/10 flex items-center justify-between shrink-0 backdrop-blur-xl relative z-10">
           <div className="flex items-center gap-3 text-xs">
             {/* Live PayPal Status */}
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg liquid-glass border-white/10 dark:border-white/10 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] shrink-0 animate-pulse" />
               <span className="font-semibold text-slate-700 dark:text-slate-300">
                 PayPal Sandbox:
               </span>
@@ -384,8 +384,8 @@ export default function DashboardLayout({
 
       {/* 3. Dockable AI Treasury Drawer */}
       {isAiDrawerOpen && (
-        <aside className="w-96 bg-white dark:bg-[#11131A] border-l border-slate-200 dark:border-[#1E2230] flex flex-col h-screen shrink-0 shadow-lg z-20 animate-in slide-in-from-right duration-200">
-          <div className="h-14 px-4 flex items-center justify-between border-b border-slate-200 dark:border-[#1E2230]">
+        <aside className="w-96 liquid-glass-elevated border-l border-white/10 dark:border-white/10 flex flex-col h-screen shrink-0 shadow-2xl z-30 animate-in slide-in-from-right duration-200">
+          <div className="h-14 px-4 flex items-center justify-between border-b border-white/10 dark:border-white/10">
             <div className="flex items-center gap-2">
               <Bot className="w-4 h-4 text-blue-600" />
               <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">

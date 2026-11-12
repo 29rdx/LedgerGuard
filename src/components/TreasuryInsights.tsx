@@ -68,15 +68,15 @@ export function TreasuryInsights() {
   const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
   return (
-    <div className="mb-4 bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg shadow-xs overflow-hidden">
+    <div className="mb-6 liquid-glass rounded-2xl border border-white/20 dark:border-white/10 shadow-xl overflow-hidden specular-border">
       {/* Header Banner */}
-      <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200/80 dark:border-[#1E2230]">
+      <div className="px-5 py-3.5 flex items-center justify-between border-b border-white/10 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
-          <div className="p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
-            <Activity className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <Activity className="w-4 h-4 text-emerald-400" />
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
               Institutional Financial Analytics & Risk Telemetry
             </h3>
           </div>

@@ -207,27 +207,27 @@ export default function AuditLogPage() {
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+        <Search className="w-4 h-4 text-cyan-400 absolute left-3.5 top-3" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by action, actor (USER, AI_AGENT, PAYPAL_WEBHOOK, SECURITY_GUARD), or order ID..."
-          className="w-full pl-9 pr-4 py-2 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#11131A] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-900"
+          className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/20 dark:border-white/10 liquid-glass text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 shadow-inner"
         />
       </div>
 
       {/* Hash Chained Timeline */}
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         {filteredLogs.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 font-mono text-xs border border-dashed rounded-lg">
+          <div className="p-8 text-center text-slate-400 font-mono text-xs border border-dashed border-white/20 rounded-2xl liquid-glass">
             No audit log records match the search query.
           </div>
         ) : (
           filteredLogs.map((log) => (
             <div
               key={log.id}
-              className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs space-y-3 font-mono text-xs"
+              className="p-5 rounded-2xl liquid-glass-card border border-white/10 dark:border-white/10 shadow-lg space-y-3 font-mono text-xs specular-border"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

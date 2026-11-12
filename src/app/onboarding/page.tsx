@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Logo3D } from '@/components/Logo3D';
 import {
   Shield,
   Building2,
@@ -137,9 +138,18 @@ export default function OnboardingPage() {
         maxAllowedRiskScore: Number(maxRisk),
       };
 
+      let csrfToken = typeof document !== 'undefined' ? document.cookie.match(/lg_csrf=([^;]+)/)?.[1] : null;
+      if (!csrfToken && typeof document !== 'undefined') {
+        csrfToken = 'csrf_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        document.cookie = `lg_csrf=${csrfToken}; path=/; SameSite=Lax`;
+      }
+
       const res = await fetch('/api/onboarding', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
+        },
         body: JSON.stringify(payload),
       });
 
@@ -158,38 +168,63 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#090A0F] flex flex-col justify-between p-6 sm:p-10">
+    <div className="min-h-screen w-full flex flex-col justify-between p-6 sm:p-10 relative z-10">
       {/* Top Header */}
-      <div className="max-w-4xl w-full mx-auto flex items-center justify-between pb-6 border-b border-slate-200 dark:border-[#1E2230]">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center shadow-xs">
-            <Shield className="w-5 h-5" />
-          </div>
+      <div className="max-w-4xl w-full mx-auto flex items-center justify-between pb-6 border-b border-white/10 dark:border-white/10">
+        <div className="flex items-center gap-3.5">
+          <Logo3D size="md" />
           <div>
-            <h1 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
               Enterprise Tenant Onboarding
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-cyan-400 border border-blue-500/20">
+                Institutional
+              </span>
             </h1>
-            <p className="text-xs text-slate-500 font-mono">
-              Institutional Vault & Treasury Policy Configuration
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+              Hardware-Accelerated AES-256-GCM Vault & Autonomous Treasury Policy
             </p>
           </div>
         </div>
 
         {/* Stepper Indicator */}
-        <div className="hidden sm:flex items-center gap-2 text-xs font-mono">
-          <span className={`px-2.5 py-1 rounded font-semibold ${step === 1 ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-400'}`}>
+        <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono">
+          <span
+            className={`px-3 py-1.5 rounded-lg transition-all ${
+              step === 1
+                ? 'liquid-glass border-cyan-500/40 text-cyan-400 font-semibold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
             1. Profile
           </span>
-          <span className="text-slate-300 dark:text-slate-700">/</span>
-          <span className={`px-2.5 py-1 rounded font-semibold ${step === 2 ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-400'}`}>
+          <span className="text-slate-600">/</span>
+          <span
+            className={`px-3 py-1.5 rounded-lg transition-all ${
+              step === 2
+                ? 'liquid-glass border-cyan-500/40 text-cyan-400 font-semibold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
             2. PayPal Vault
           </span>
-          <span className="text-slate-300 dark:text-slate-700">/</span>
-          <span className={`px-2.5 py-1 rounded font-semibold ${step === 3 ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-400'}`}>
+          <span className="text-slate-600">/</span>
+          <span
+            className={`px-3 py-1.5 rounded-lg transition-all ${
+              step === 3
+                ? 'liquid-glass border-cyan-500/40 text-cyan-400 font-semibold shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
             3. Treasury Policy
           </span>
-          <span className="text-slate-300 dark:text-slate-700">/</span>
-          <span className={`px-2.5 py-1 rounded font-semibold ${step === 4 ? 'bg-emerald-600 text-white' : 'text-slate-400'}`}>
+          <span className="text-slate-600">/</span>
+          <span
+            className={`px-3 py-1.5 rounded-lg transition-all ${
+              step === 4
+                ? 'bg-emerald-600 text-white font-semibold shadow-[0_0_12px_rgba(5,150,105,0.4)]'
+                : 'text-slate-400'
+            }`}
+          >
             4. Ready
           </span>
         </div>
@@ -208,7 +243,7 @@ export default function OnboardingPage() {
         {/* STEP 1: Organization Profile */}
         {/* ======================================================== */}
         {step === 1 && (
-          <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="liquid-glass-elevated rounded-2xl p-6 sm:p-8 space-y-6 specular-border">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 font-mono">
                 <Building2 className="w-4 h-4 text-slate-700 dark:text-slate-300" />
@@ -304,7 +339,7 @@ export default function OnboardingPage() {
         {/* STEP 2: PayPal API Vaulting & AES-256-GCM */}
         {/* ======================================================== */}
         {step === 2 && (
-          <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="liquid-glass-elevated rounded-2xl p-6 sm:p-8 space-y-6 specular-border">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 font-mono">
                 <Key className="w-4 h-4 text-slate-700 dark:text-slate-300" />
@@ -447,10 +482,10 @@ export default function OnboardingPage() {
         {/* STEP 3: Treasury Policy Selection */}
         {/* ======================================================== */}
         {step === 3 && (
-          <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="liquid-glass-elevated rounded-2xl p-6 sm:p-8 space-y-6 specular-border">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 font-mono">
-                <Sliders className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+                <Sliders className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
                 Step 3 of 3 · Autonomous Policy Guardrails
               </div>
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
@@ -469,10 +504,10 @@ export default function OnboardingPage() {
                   <div
                     key={tpl.id}
                     onClick={() => applyTemplate(tpl)}
-                    className={`cursor-pointer p-4 rounded-lg border transition-all text-left flex flex-col justify-between ${
+                    className={`cursor-pointer p-4 rounded-xl border transition-all text-left flex flex-col justify-between backdrop-blur-md relative overflow-hidden group ${
                       isSelected
-                        ? 'border-slate-900 dark:border-slate-100 bg-slate-50 dark:bg-slate-900/80 shadow-xs'
-                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 hover:border-slate-300'
+                        ? 'border-cyan-500/80 bg-gradient-to-b from-blue-600/20 via-cyan-500/10 to-transparent shadow-[0_8px_24px_rgba(0,112,186,0.3)] ring-1 ring-cyan-400/50'
+                        : 'border-white/10 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 hover:border-white/20'
                     }`}
                   >
                     <div>
@@ -484,12 +519,12 @@ export default function OnboardingPage() {
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         )}
                       </div>
-                      <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
                         {tpl.description}
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 text-[11px] font-mono space-y-1">
+                    <div className="pt-3 border-t border-white/10 dark:border-white/5 text-[11px] font-mono space-y-1">
                       <div className="flex justify-between">
                         <span className="text-slate-500">Max Auto-Capture:</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
@@ -515,7 +550,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Fine-Tuning Sliders */}
-            <div className="p-4 rounded border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-4">
+            <div className="p-4 rounded-xl border border-white/15 dark:border-white/10 bg-white/40 dark:bg-slate-900/50 backdrop-blur-md space-y-4">
               <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-mono">
                 Fine-Tune Operational Parameters
               </div>
@@ -537,7 +572,7 @@ export default function OnboardingPage() {
                     step="100"
                     value={maxAutoCapture}
                     onChange={(e) => setMaxAutoCapture(Number(e.target.value))}
-                    className="w-full accent-slate-900 dark:accent-slate-100"
+                    className="w-full accent-cyan-500"
                   />
                 </div>
 
@@ -557,7 +592,7 @@ export default function OnboardingPage() {
                     step="100"
                     value={mfaThreshold}
                     onChange={(e) => setMfaThreshold(Number(e.target.value))}
-                    className="w-full accent-slate-900 dark:accent-slate-100"
+                    className="w-full accent-cyan-500"
                   />
                 </div>
               </div>
@@ -568,7 +603,7 @@ export default function OnboardingPage() {
                     type="checkbox"
                     checked={requireProof}
                     onChange={(e) => setRequireProof(e.target.checked)}
-                    className="rounded text-slate-900 dark:text-slate-100"
+                    className="rounded text-cyan-600 focus:ring-cyan-500"
                   />
                   <span>Mandate Cryptographic Proof-of-Delivery prior to Capture</span>
                 </label>
@@ -578,11 +613,11 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            <div className="flex justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-between pt-4 border-t border-white/10 dark:border-white/5">
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-100 transition-colors"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Back
@@ -591,7 +626,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={handleFinalizeOnboarding}
                 disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-xs disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white transition-all shadow-[0_4px_20px_rgba(5,150,105,0.4)] hover:shadow-[0_6px_28px_rgba(5,150,105,0.6)] disabled:opacity-50 active:scale-[0.98]"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 {loading ? 'Activating Policy & Committing Block...' : 'Finalize & Commit Policy'}
@@ -604,7 +639,7 @@ export default function OnboardingPage() {
         {/* STEP 4: Ready / Finalized */}
         {/* ======================================================== */}
         {step === 4 && (
-          <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg p-8 sm:p-10 shadow-xs text-center space-y-6">
+          <div className="liquid-glass-elevated rounded-2xl p-8 sm:p-10 shadow-xl text-center space-y-6 specular-border">
             <div className="inline-flex p-3 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 className="w-8 h-8" />
             </div>

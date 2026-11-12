@@ -820,54 +820,69 @@ export default function TreasuryDashboardPage() {
 
       {/* 4-KPI Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-mono mb-2">
-            <span>ESCROW UNDER HOLD</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+        <div className="liquid-glass-card p-5 rounded-2xl relative overflow-hidden group specular-border">
+          <div className="absolute -top-10 -right-10 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none" />
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">
+            <span className="tracking-wider">ESCROW UNDER HOLD</span>
+            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500">
+              <Clock className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-semibold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
             ${metrics.totalHold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-mono">
-            {metrics.activeHoldsCount} active authorizations awaiting proof
+          <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <span>{metrics.activeHoldsCount} active authorizations awaiting proof</span>
           </div>
         </div>
 
-        <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-mono mb-2">
-            <span>SETTLED DISBURSEMENTS</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+        <div className="liquid-glass-card p-5 rounded-2xl relative overflow-hidden group specular-border">
+          <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all pointer-events-none" />
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">
+            <span className="tracking-wider">SETTLED DISBURSEMENTS</span>
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-semibold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
             ${metrics.totalCaptured.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="mt-1 text-[11px] text-emerald-600 font-mono flex items-center gap-1">
-            <ArrowUpRight className="w-3 h-3" /> Captured via PayPal v2
+          <div className="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-mono flex items-center gap-1">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+            <span>Captured via PayPal v2</span>
           </div>
         </div>
 
-        <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-mono mb-2">
-            <span>DISPUTE RATE</span>
-            <ShieldAlert className="w-4 h-4 text-red-500" />
+        <div className="liquid-glass-card p-5 rounded-2xl relative overflow-hidden group specular-border">
+          <div className="absolute -top-10 -right-10 w-28 h-28 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all pointer-events-none" />
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">
+            <span className="tracking-wider">DISPUTE RATE</span>
+            <div className="p-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500">
+              <ShieldAlert className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-semibold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
             {metrics.disputeRate}%
           </div>
-          <div className="mt-1 text-[11px] text-red-600 font-mono">
+          <div className="mt-2 text-[11px] text-red-600 dark:text-red-400 font-mono">
             {metrics.flaggedCount} flagged for milestone mismatch
           </div>
         </div>
 
-        <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-mono mb-2">
-            <span>MULTI-AGENT CONTROLLER</span>
-            <Bot className="w-4 h-4 text-blue-500" />
+        <div className="liquid-glass-card p-5 rounded-2xl relative overflow-hidden group specular-border">
+          <div className="absolute -top-10 -right-10 w-28 h-28 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all pointer-events-none" />
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">
+            <span className="tracking-wider">MULTI-AGENT CONTROLLER</span>
+            <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+              <Bot className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-semibold font-mono text-slate-900 dark:text-slate-100">
-            Autonomous
+          <div className="text-2xl font-bold font-mono text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <span>Autonomous</span>
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
           </div>
-          <div className="mt-1 text-[11px] text-blue-600 font-mono">
+          <div className="mt-2 text-[11px] text-cyan-600 dark:text-cyan-400 font-mono">
             SSE Stream · AES-256-GCM ALE
           </div>
         </div>

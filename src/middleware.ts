@@ -100,9 +100,23 @@ export async function middleware(request: NextRequest) {
   ) {
     const csrfCookie = request.cookies.get(CSRF_COOKIE_NAME)?.value;
     const csrfHeader = request.headers.get('x-csrf-token');
+    const origin = request.headers.get('origin');
+    const host = request.headers.get('host');
+    const isSameOrigin = !origin || (host && origin.includes(host));
 
-    // Strict Double-Submit verification
-    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+    // Strict Double-Submit verification when both are present
+    if (csrfCookie && csrfHeader) {
+      if (csrfCookie !== csrfHeader) {
+        return new NextResponse(
+          JSON.stringify({
+            error: 'Forbidden',
+            message: 'CSRF token mismatch. Request blocked by Double-Submit CSRF defense.',
+          }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (!isSameOrigin) {
+      // Non-same-origin mutating requests must provide valid double-submit CSRF headers
       return new NextResponse(
         JSON.stringify({
           error: 'Forbidden',
@@ -174,6 +188,19 @@ export async function middleware(request: NextRequest) {
       response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-csrf-token');
     }
+  }
+
+  // Ensure Double-Submit CSRF cookie is initialized for client scripts
+  if (!request.cookies.get(CSRF_COOKIE_NAME)) {
+    const isProd = process.env.NODE_ENV === 'production';
+    const autoCsrf = 'csrf_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    response.cookies.set(CSRF_COOKIE_NAME, autoCsrf, {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 8 * 3600,
+    });
   }
 
   return response;

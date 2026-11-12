@@ -9,30 +9,48 @@
   /* Institutional FinTech Palette */
   --bg-canvas: #f8fafc;
   --bg-surface: #ffffff;
-  --border-hairline: #e2e8f0;
+  --border-hairline: rgba(226, 232, 240, 0.8);
   --text-primary: #0f172a;
   --text-muted: #475569;
 
   /* Semantic Accents */
   --pp-blue: #0070ba;
   --pp-blue-dark: #003087;
+  --pp-cyan: #00cfde;
   --status-emerald: #059669;
   --status-amber: #d97706;
   --status-crimson: #dc2626;
+
+  /* Liquid Glass Tokens (Light Mode) */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-border-subtle: rgba(226, 232, 240, 0.7);
+  --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.06);
+  --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .dark {
-  --bg-canvas: #090a0f;
-  --bg-surface: #11131a;
-  --border-hairline: #1e2230;
-  --text-primary: #f1f5f9;
+  --bg-canvas: #07090e;
+  --bg-surface: #0e121d;
+  --border-hairline: rgba(30, 41, 59, 0.7);
+  --text-primary: #f8fafc;
   --text-muted: #94a3b8;
+
+  /* Liquid Glass Tokens (Dark Mode) */
+  --glass-bg: rgba(13, 17, 28, 0.65);
+  --glass-bg-elevated: rgba(20, 26, 43, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-subtle: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+  --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-canvas);
   color: var(--text-primary);
+  overflow-x: hidden;
 }
 
 .font-mono-numbers {
@@ -40,30 +58,137 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Institutional AG Grid Overrides */
+/* ========================================================================= */
+/* LIQUID GLASS DESIGN SYSTEM (Translucent Frosted Acrylic)                 */
+/* ========================================================================= */
+
+.liquid-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-specular);
+}
+
+.liquid-glass-elevated {
+  background: var(--glass-bg-elevated);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.35), var(--glass-specular);
+}
+
+.liquid-glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-specular);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-card:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 16px 44px -4px rgba(0, 112, 186, 0.2), inset 0 1px 2px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Liquid Specular Edge (Hairline light gleam on top of surfaces) */
+.specular-border {
+  position: relative;
+}
+.specular-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ========================================================================= */
+/* AMBIENT FLOATING LIQUID LIGHT ORBS (Organic Dynamic Glows)               */
+/* ========================================================================= */
+
+@keyframes liquid-orb-float-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(40px, -30px) scale(1.08);
+  }
+}
+
+@keyframes liquid-orb-float-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(-35px, 35px) scale(0.95);
+  }
+}
+
+@keyframes liquid-orb-float-3 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(25px, 20px) scale(1.12);
+  }
+}
+
+.animate-liquid-orb-1 {
+  animation: liquid-orb-float-1 16s ease-in-out infinite;
+}
+
+.animate-liquid-orb-2 {
+  animation: liquid-orb-float-2 20s ease-in-out infinite;
+}
+
+.animate-liquid-orb-3 {
+  animation: liquid-orb-float-3 18s ease-in-out infinite;
+}
+
+/* ========================================================================= */
+/* INSTITUTIONAL AG GRID LIQUID GLASS THEME OVERRIDES                       */
+/* ========================================================================= */
+
 .ag-theme-alpine {
-  --ag-background-color: #ffffff;
+  --ag-background-color: transparent;
   --ag-foreground-color: #0f172a;
-  --ag-header-background-color: #f8fafc;
-  --ag-header-foreground-color: #475569;
-  --ag-border-color: #e2e8f0;
-  --ag-row-hover-color: #f1f5f9;
-  --ag-selected-row-background-color: #e2e8f0;
+  --ag-header-background-color: rgba(248, 250, 252, 0.7);
+  --ag-header-foreground-color: #334155;
+  --ag-border-color: rgba(226, 232, 240, 0.6);
+  --ag-row-hover-color: rgba(241, 245, 249, 0.75);
+  --ag-selected-row-background-color: rgba(224, 242, 254, 0.75);
   --ag-font-family: var(--font-sans);
   --ag-font-size: 13px;
   --ag-grid-size: 6px;
-  --ag-header-height: 38px;
-  --ag-row-height: 42px;
+  --ag-header-height: 40px;
+  --ag-row-height: 44px;
 }
 
 .dark .ag-theme-alpine {
-  --ag-background-color: #11131a;
+  --ag-background-color: transparent;
   --ag-foreground-color: #f1f5f9;
-  --ag-header-background-color: #161922;
+  --ag-header-background-color: rgba(18, 24, 38, 0.6);
   --ag-header-foreground-color: #94a3b8;
-  --ag-border-color: #1e2230;
-  --ag-row-hover-color: #1a1e2b;
-  --ag-selected-row-background-color: #242938;
+  --ag-border-color: rgba(255, 255, 255, 0.08);
+  --ag-row-hover-color: rgba(30, 41, 59, 0.5);
+  --ag-selected-row-background-color: rgba(0, 112, 186, 0.25);
+}
+
+.ag-theme-alpine .ag-root-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.ag-theme-alpine .ag-header {
+  border-bottom: 1px solid var(--ag-border-color);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .ag-theme-alpine .ag-header-cell-label {
@@ -73,8 +198,18 @@ body {
   letter-spacing: 0.05em;
 }
 
+.ag-theme-alpine .ag-row {
+  border-bottom: 1px solid var(--ag-border-color);
+  backdrop-filter: blur(8px);
+  transition: background-color 0.15s ease;
+}
+
 .ag-theme-alpine .ag-cell {
   display: flex;
   align-items: center;
 }
 
+.ag-theme-alpine .ag-paging-panel {
+  border-top: 1px solid var(--ag-border-color);
+  background: transparent !important;
+}

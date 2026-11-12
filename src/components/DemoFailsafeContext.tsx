@@ -93,18 +93,34 @@ export function DemoFailsafeProvider({ children }: { children: React.ReactNode }
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [toggleDemoMode]);
 
-  // 3. Intercept window.fetch to automatically append header when failsafe is active
+  // 3. Intercept window.fetch to automatically append Failsafe and CSRF headers
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const originalFetch = window.fetch;
     window.fetch = async function (input: RequestInfo | URL, init?: RequestInit) {
+      init = init || {};
+      const headers = new Headers(init.headers || {});
+
+      // Append Demo Failsafe header if active
       if (isDemoMode) {
-        init = init || {};
-        const headers = new Headers(init.headers || {});
         headers.set(DEMO_FAILSAFE_HEADER, 'true');
-        init.headers = headers;
       }
+
+      // Automatically attach Double-Submit CSRF token on mutating requests
+      const method = (init.method || 'GET').toUpperCase();
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+        let csrfVal = document.cookie.match(/lg_csrf=([^;]+)/)?.[1];
+        if (!csrfVal) {
+          csrfVal = 'csrf_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+          document.cookie = `lg_csrf=${csrfVal}; path=/; SameSite=Lax`;
+        }
+        if (!headers.has('x-csrf-token')) {
+          headers.set('x-csrf-token', csrfVal);
+        }
+      }
+
+      init.headers = headers;
       return originalFetch(input, init);
     };
 
@@ -168,3 +184,4 @@ export function DemoFailsafeIndicator() {
     </button>
   );
 }
+
