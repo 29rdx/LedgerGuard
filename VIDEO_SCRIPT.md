@@ -82,8 +82,12 @@ Hello PayPal AI Hackathon Judging Team,
 Please find the complete submission details for LedgerGuard—an institutional Agentic Treasury, Proof-of-Delivery Escrow, and Accounts-Payable Reconciliation Terminal built on the PayPal Developer Platform (Orders v2, Invoicing v2, Webhooks v1, and @paypal/agent-toolkit) and AG Grid.
 
 1. Live Production Application URL:
-[PASTE YOUR VERCEL / RENDER URL HERE]
+https://ledgerguard-kappa.vercel.app
+(Alternative Domain: https://ledgerguard-29rdxs-projects.vercel.app)
 (Note: Click the "1-Click Judge Sandbox Session" button on the login screen for instant, zero-friction access to an isolated Treasury Admin workspace).
+
+2. Interactive In-App Video Walkthrough:
+https://ledgerguard-kappa.vercel.app/demo-video
 
 2. Public GitHub Repository (MIT Licensed):
 [PASTE YOUR GITHUB REPO URL HERE]
