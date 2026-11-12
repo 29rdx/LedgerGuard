@@ -70,6 +70,7 @@ export async function POST(
       redactedDetails: details,
       previousHash: prevHash,
       recordHash,
+      timestamp: new Date(timestamp),
     });
 
     secureLogger.info('PayPal Order Refunded', { transactionId: id, refundId: refundRes.refundId });

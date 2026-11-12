@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { ColDef, ICellRendererParams } from 'ag-grid-community';
+import { ColDef, ICellRendererParams, SelectionChangedEvent } from 'ag-grid-community';
 import {
   ShieldAlert,
   CheckCircle2,
@@ -18,17 +18,28 @@ import {
   ExternalLink,
   Eye,
   Check,
+  Copy,
+  Code2,
+  Sparkles,
+  Layers,
 } from 'lucide-react';
-import { FinancialBlotterRow, AgentActionDirective } from '@/types';
+import { FinancialBlotterRow, AgentActionDirective, UserSession } from '@/types';
 
 export default function TreasuryDashboardPage() {
   const [transactions, setTransactions] = useState<FinancialBlotterRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<{
-    column?: string;
-    value?: string;
-    minAmount?: number;
-  } | null>(null);
+  const [session, setSession] = useState<UserSession | null>(null);
+
+  // Active filter state
+  const [activeFilterLabel, setActiveFilterLabel] = useState<string | null>(null);
+
+  // Selected rows for bulk operations
+  const [selectedRows, setSelectedRows] = useState<FinancialBlotterRow[]>([]);
+  const [bulkAuditing, setBulkAuditing] = useState(false);
+  const [bulkAuditProgress, setBulkAuditProgress] = useState<string | null>(null);
+
+  // Toast Notification State
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Step-Up MFA Modal State
   const [selectedTxForCapture, setSelectedTxForCapture] = useState<FinancialBlotterRow | null>(null);
@@ -40,11 +51,34 @@ export default function TreasuryDashboardPage() {
   // Proof-of-Delivery Inspection Modal State
   const [inspectedTx, setInspectedTx] = useState<FinancialBlotterRow | null>(null);
 
-  // Audit Loading State
+  // Raw PayPal JSON Modal State
+  const [rawJsonModal, setRawJsonModal] = useState<{ title: string; json: string } | null>(null);
+
+  // Inline action loading states
   const [auditLoadingId, setAuditLoadingId] = useState<string | null>(null);
   const [simulatingId, setSimulatingId] = useState<string | null>(null);
 
   const gridRef = useRef<AgGridReact<FinancialBlotterRow>>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 3200);
+  }, []);
+
+  const fetchSession = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data?.authenticated) {
+        setSession(data.user);
+        if (data.demoMfa?.code) setDemoTotp(data.demoMfa.code);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -62,32 +96,47 @@ export default function TreasuryDashboardPage() {
   }, []);
 
   useEffect(() => {
+    fetchSession();
     fetchTransactions();
-
-    fetch('/api/auth/me')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.demoMfa?.code) setDemoTotp(d.demoMfa.code);
-      });
 
     const handleAgentDirective = (e: Event) => {
       const customEvent = e as CustomEvent<AgentActionDirective>;
       const directive = customEvent.detail;
 
+      if (!gridRef.current?.api) return;
+
       if (directive.intent === 'filter_ag_grid_ledger') {
-        if (directive.filterColumn === 'ALL') {
-          setActiveFilter(null);
+        if (directive.filterColumn === 'ALL' || (!directive.filterColumn && !directive.filterMinAmount)) {
+          gridRef.current.api.setFilterModel(null);
+          setActiveFilterLabel(null);
+          showToast('AG Grid Filter Reset: Showing all institutional records');
         } else if (directive.filterMinAmount) {
-          setActiveFilter({ minAmount: directive.filterMinAmount });
-        } else if (directive.filterColumn && directive.filterValue) {
-          setActiveFilter({ column: directive.filterColumn, value: directive.filterValue });
+          gridRef.current.api.setFilterModel({
+            amount: {
+              filterType: 'number',
+              type: 'greaterThan',
+              filter: directive.filterMinAmount,
+            },
+          });
+          setActiveFilterLabel(`Amount > $${directive.filterMinAmount.toLocaleString()}`);
+          showToast(`AG Grid Filter Applied: Amount > $${directive.filterMinAmount.toLocaleString()}`);
+        } else if (directive.filterColumn === 'status' && directive.filterValue) {
+          gridRef.current.api.setFilterModel({
+            status: {
+              filterType: 'text',
+              type: 'contains',
+              filter: directive.filterValue,
+            },
+          });
+          setActiveFilterLabel(`Status: ${directive.filterValue}`);
+          showToast(`AG Grid Filter Applied: Status = ${directive.filterValue}`);
         }
       }
     };
 
     window.addEventListener('ledgerguard:agent-directive', handleAgentDirective);
     return () => window.removeEventListener('ledgerguard:agent-directive', handleAgentDirective);
-  }, [fetchTransactions]);
+  }, [fetchSession, fetchTransactions, showToast]);
 
   // 4-KPI Institutional Metrics
   const metrics = useMemo(() => {
@@ -109,20 +158,58 @@ export default function TreasuryDashboardPage() {
     return { totalHold, activeHoldsCount, totalCaptured, flaggedCount, disputeRate };
   }, [transactions]);
 
-  // Filtered rows for AG Grid
-  const rowData = useMemo(() => {
-    if (!activeFilter) return transactions;
-    return transactions.filter((tx) => {
-      if (activeFilter.minAmount != null) {
-        return tx.amount >= activeFilter.minAmount;
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    showToast(`Copied ${label} to clipboard: ${text}`);
+  };
+
+  // Row selection handler
+  const onSelectionChanged = useCallback((event: SelectionChangedEvent<FinancialBlotterRow>) => {
+    const selected = event.api.getSelectedRows();
+    setSelectedRows(selected);
+  }, []);
+
+  // Bulk AI Audit & Auto-Capture Selected Rows
+  const handleBulkAuditSelected = async () => {
+    const rowsToAudit = selectedRows.filter((r) => r.status === 'AUTHORIZED_HOLD' || r.status === 'AUDIT_PASSED');
+    if (rowsToAudit.length === 0) {
+      showToast('Select one or more AUTHORIZED_HOLD rows to run bulk audit.');
+      return;
+    }
+
+    setBulkAuditing(true);
+    let auditedCount = 0;
+
+    for (let i = 0; i < rowsToAudit.length; i++) {
+      const row = rowsToAudit[i];
+      setBulkAuditProgress(`Auditing escrow ${i + 1} of ${rowsToAudit.length} (${row.vendorName})...`);
+
+      try {
+        const res = await fetch('/api/agent/audit-delivery', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transactionId: row.id }),
+        });
+        if (res.ok) auditedCount++;
+      } catch (err) {
+        console.error('Audit failed for row', row.id, err);
       }
-      if (activeFilter.column && activeFilter.value) {
-        const val = (tx as unknown as Record<string, unknown>)[activeFilter.column];
-        return String(val) === activeFilter.value;
-      }
-      return true;
-    });
-  }, [transactions, activeFilter]);
+    }
+
+    setBulkAuditing(false);
+    setBulkAuditProgress(null);
+    showToast(`Bulk AI Audit completed: ${auditedCount} of ${rowsToAudit.length} escrows verified.`);
+    fetchTransactions();
+  };
+
+  // Clear AG Grid filters
+  const handleClearFilters = () => {
+    if (gridRef.current?.api) {
+      gridRef.current.api.setFilterModel(null);
+      setActiveFilterLabel(null);
+      showToast('AG Grid Filter Reset');
+    }
+  };
 
   // Execute Step-Up MFA Capture
   const handleExecuteCapture = async () => {
@@ -142,6 +229,7 @@ export default function TreasuryDashboardPage() {
         throw new Error(data.message || 'Capture failed');
       }
 
+      showToast(`Settlement Executed: Order ${selectedTxForCapture.paypalOrderId} captured via PayPal v2.`);
       setSelectedTxForCapture(null);
       setMfaCode('');
       fetchTransactions();
@@ -152,7 +240,7 @@ export default function TreasuryDashboardPage() {
     }
   };
 
-  // Run Autonomous Delivery Audit
+  // Run Autonomous Delivery Audit for single row
   const handleRunAudit = async (txId: string) => {
     setAuditLoadingId(txId);
     try {
@@ -163,6 +251,7 @@ export default function TreasuryDashboardPage() {
       });
       const data = await res.json();
       if (data.success) {
+        showToast(`Audit Completed: Verdict ${data.auditResult?.verdict || 'VERIFIED'}, Risk Score: ${data.auditResult?.riskScore ?? 'LOW'}`);
         fetchTransactions();
       }
     } catch (err) {
@@ -180,6 +269,7 @@ export default function TreasuryDashboardPage() {
         method: 'POST',
       });
       if (res.ok) {
+        showToast('Sandbox Buyer Approval & Settlement verified. Funds captured.');
         fetchTransactions();
       }
     } catch (err) {
@@ -196,7 +286,10 @@ export default function TreasuryDashboardPage() {
       const res = await fetch(`/api/paypal/orders/${txId}/refund`, {
         method: 'POST',
       });
-      if (res.ok) fetchTransactions();
+      if (res.ok) {
+        showToast('Escrow hold voided and refunded via PayPal rail.');
+        fetchTransactions();
+      }
     } catch (err) {
       console.error('Refund failed', err);
     }
@@ -207,6 +300,7 @@ export default function TreasuryDashboardPage() {
       gridRef.current.api.exportDataAsCsv({
         fileName: `ledgerguard_financial_blotter_${new Date().toISOString().split('T')[0]}.csv`,
       });
+      showToast('Exported AG Grid financial blotter as CSV.');
     }
   };
 
@@ -214,21 +308,55 @@ export default function TreasuryDashboardPage() {
   const columnDefs: ColDef<FinancialBlotterRow>[] = useMemo(
     () => [
       {
+        headerName: '',
+        checkboxSelection: true,
+        headerCheckboxSelection: true,
+        width: 48,
+        pinned: 'left',
+        lockPosition: 'left',
+        suppressHeaderMenuButton: true,
+        resizable: false,
+        sortable: false,
+        filter: false,
+      },
+      {
         headerName: 'PayPal Identifier',
         field: 'paypalOrderId',
-        width: 175,
+        width: 195,
+        filter: 'agTextColumnFilter',
+        floatingFilter: true,
         cellRenderer: (params: ICellRendererParams<FinancialBlotterRow>) => {
           const id = params.value || 'N/A';
+          const raw = params.data?.rawPaypalResponse;
           return (
-            <div className="flex items-center gap-1 font-mono text-xs text-slate-800 dark:text-slate-200 font-semibold">
-              <span>{id}</span>
+            <div className="flex items-center gap-1.5 py-1">
+              <span
+                onClick={() => copyToClipboard(id, 'PayPal Order ID')}
+                className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors inline-flex items-center gap-1"
+                title="Click to copy Order ID"
+              >
+                <span>{id}</span>
+                <Copy className="w-2.5 h-2.5 opacity-50" />
+              </span>
+
+              {raw && (
+                <button
+                  type="button"
+                  onClick={() => setRawJsonModal({ title: `PayPal Orders v2 Payload (${id})`, json: raw })}
+                  title="Inspect Raw PayPal JSON Payload"
+                  className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+
               {params.data?.approvalLink && (
                 <a
                   href={params.data.approvalLink}
                   target="_blank"
                   rel="noreferrer"
-                  title="Open Sandbox Checkout"
-                  className="text-blue-600 hover:text-blue-800 ml-1"
+                  title="Open Live Sandbox Checkout"
+                  className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
                 >
                   <ExternalLink className="w-3 h-3" />
                 </a>
@@ -241,9 +369,12 @@ export default function TreasuryDashboardPage() {
         headerName: 'Vendor / Counterparty',
         field: 'vendorName',
         flex: 1.3,
+        minWidth: 180,
+        filter: 'agTextColumnFilter',
+        floatingFilter: true,
         cellRenderer: (params: ICellRendererParams<FinancialBlotterRow>) => (
           <div className="leading-tight py-1">
-            <div className="font-semibold text-slate-900 dark:text-slate-100">{params.value}</div>
+            <div className="font-semibold text-slate-900 dark:text-slate-100 text-xs">{params.value}</div>
             <div className="text-[11px] text-slate-400 font-mono truncate">{params.data?.vendorEmail}</div>
           </div>
         ),
@@ -251,7 +382,9 @@ export default function TreasuryDashboardPage() {
       {
         headerName: 'Category',
         field: 'category',
-        width: 140,
+        width: 145,
+        filter: 'agTextColumnFilter',
+        floatingFilter: true,
         cellRenderer: (params: ICellRendererParams<FinancialBlotterRow>) => (
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
             {params.value}
@@ -261,9 +394,11 @@ export default function TreasuryDashboardPage() {
       {
         headerName: 'Escrow Amount',
         field: 'amount',
-        width: 145,
+        width: 150,
+        filter: 'agNumberColumnFilter',
+        floatingFilter: true,
         cellRenderer: (params: ICellRendererParams<FinancialBlotterRow>) => (
-          <div className="font-mono-numbers font-semibold text-slate-900 dark:text-slate-100">
+          <div className="font-mono font-semibold text-xs text-slate-900 dark:text-slate-100 py-1">
             ${Number(params.value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {params.data?.currency}
           </div>
         ),
@@ -272,45 +407,47 @@ export default function TreasuryDashboardPage() {
         headerName: 'Settlement Status',
         field: 'status',
         width: 175,
+        filter: 'agTextColumnFilter',
+        floatingFilter: true,
         cellRenderer: (params: ICellRendererParams<FinancialBlotterRow>) => {
           const s = params.value;
           if (s === 'CAPTURED') {
             return (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
                 <CheckCircle2 className="w-3 h-3" /> Captured & Settled
               </span>
             );
           }
           if (s === 'AUDIT_PASSED') {
             return (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <Check className="w-3 h-3" /> Audit Passed
               </span>
             );
           }
           if (s === 'AUTHORIZED_HOLD') {
             return (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
                 <Clock className="w-3 h-3" /> Authorized Hold
               </span>
             );
           }
           if (s === 'FLAGGED_DISPUTE') {
             return (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]">
                 <ShieldAlert className="w-3 h-3" /> Flagged Dispute
               </span>
             );
           }
           if (s === 'REFUNDED') {
             return (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-300">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-300">
                 Voided / Refunded
               </span>
             );
           }
           return (
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
               Created
             </span>
           );
@@ -320,21 +457,29 @@ export default function TreasuryDashboardPage() {
         headerName: 'AI Risk Score',
         field: 'aiRiskScore',
         width: 140,
+        filter: 'agNumberColumnFilter',
+        floatingFilter: true,
         cellRenderer: (params: ICellRendererParams<FinancialBlotterRow>) => {
           const score = params.value ?? 15;
-          const isHighRisk = score > 50;
-          const isMedRisk = score > 25 && score <= 50;
+          const isHighRisk = score > 60;
+          const isMedRisk = score >= 25 && score <= 60;
           return (
-            <div className="w-full flex items-center gap-2">
+            <div className="w-full flex items-center gap-2 py-1">
               <div className="flex-1 bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
                 <div
                   className={`h-full ${
-                    isHighRisk ? 'bg-red-500' : isMedRisk ? 'bg-amber-500' : 'bg-emerald-500'
+                    isHighRisk ? 'bg-[#DC2626]' : isMedRisk ? 'bg-[#D97706]' : 'bg-[#059669]'
                   }`}
-                  style={{ width: `${score}%` }}
+                  style={{ width: `${Math.min(100, Math.max(5, score))}%` }}
                 />
               </div>
-              <span className="font-mono text-xs font-semibold w-8">{score}</span>
+              <span
+                className={`font-mono text-xs font-semibold w-7 text-right ${
+                  isHighRisk ? 'text-red-600' : isMedRisk ? 'text-amber-600' : 'text-emerald-600'
+                }`}
+              >
+                {score}
+              </span>
             </div>
           );
         },
@@ -342,12 +487,14 @@ export default function TreasuryDashboardPage() {
       {
         headerName: 'Proof',
         field: 'proofFileHash',
-        width: 80,
+        width: 75,
+        sortable: false,
+        filter: false,
         cellRenderer: (params: ICellRendererParams<FinancialBlotterRow>) => (
           <button
             onClick={() => setInspectedTx(params.data || null)}
             className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
-            title="Inspect Proof-of-Delivery"
+            title="Inspect Proof-of-Delivery Attestation & Hash"
           >
             <Eye className="w-4 h-4" />
           </button>
@@ -356,16 +503,26 @@ export default function TreasuryDashboardPage() {
       {
         headerName: 'Execution Controls',
         field: 'id',
-        width: 250,
+        width: 280,
+        sortable: false,
+        filter: false,
         cellRenderer: (params: ICellRendererParams<FinancialBlotterRow>) => {
           const row = params.data;
           if (!row) return null;
 
+          const isAuditor = session?.role === 'AUDITOR';
+
           if (row.status === 'CAPTURED') {
             return (
-              <span className="text-xs text-slate-400 font-mono">
-                Settled via {row.paypalCaptureId || 'Capture Rail'}
-              </span>
+              <div className="flex items-center gap-1 text-xs text-slate-400 font-mono py-1">
+                <span>Settled:</span>
+                <span
+                  onClick={() => copyToClipboard(row.paypalCaptureId || 'CAP-SETTLED', 'Capture ID')}
+                  className="font-semibold text-slate-600 dark:text-slate-300 cursor-pointer hover:underline"
+                >
+                  {row.paypalCaptureId || 'Capture Rail'}
+                </span>
+              </div>
             );
           }
 
@@ -373,16 +530,17 @@ export default function TreasuryDashboardPage() {
             <div className="flex items-center gap-1.5 py-1">
               <button
                 onClick={() => setSelectedTxForCapture(row)}
-                title="Execute PayPal Capture"
-                className="px-2 py-1 text-[11px] font-semibold rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 transition-colors"
+                disabled={isAuditor}
+                title={isAuditor ? 'Requires TREASURY_ADMIN role' : 'Execute PayPal Orders v2 Capture'}
+                className="px-2 py-1 text-[11px] font-semibold rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Capture
               </button>
               <button
                 onClick={() => handleSimulateApprovalAndSettle(row.id)}
-                disabled={simulatingId === row.id}
-                title="1-Click Simulate Sandbox Buyer Approval & Settle"
-                className="px-2 py-1 text-[11px] font-semibold rounded border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors"
+                disabled={simulatingId === row.id || isAuditor}
+                title={isAuditor ? 'Requires TREASURY_ADMIN role' : '1-Click Simulate Sandbox Buyer Approval & Settle'}
+                className="px-2 py-1 text-[11px] font-semibold rounded border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {simulatingId === row.id ? 'Settling...' : 'Simulate Settle'}
               </button>
@@ -396,8 +554,9 @@ export default function TreasuryDashboardPage() {
               </button>
               <button
                 onClick={() => handleRefund(row.id)}
-                title="Release Hold / Void"
-                className="px-2 py-1 text-[11px] font-medium rounded border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                disabled={isAuditor}
+                title={isAuditor ? 'Requires TREASURY_ADMIN role' : 'Release Hold / Void'}
+                className="px-2 py-1 text-[11px] font-medium rounded border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Void
               </button>
@@ -406,11 +565,22 @@ export default function TreasuryDashboardPage() {
         },
       },
     ],
-    [auditLoadingId, simulatingId]
+    [session?.role, auditLoadingId, simulatingId]
   );
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-lg shadow-xl text-xs font-mono flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+          <Sparkles className="w-3.5 h-3.5 text-blue-400 dark:text-blue-600 shrink-0" />
+          <span>{toastMessage}</span>
+          <button onClick={() => setToastMessage(null)} className="ml-2 hover:opacity-75">
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -418,18 +588,33 @@ export default function TreasuryDashboardPage() {
             Treasury Blotter & Escrow Blotter
           </h1>
           <p className="text-xs text-slate-500 font-mono mt-0.5">
-            PayPal Orders v2 · Authorize-and-Hold Settlement Terminal
+            PayPal Orders v2 · Authorize-and-Hold Settlement Terminal · AG Grid Enterprise
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {activeFilter && (
+        <div className="flex flex-wrap items-center gap-2">
+          {activeFilterLabel && (
             <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-300 text-xs font-mono">
-              <span>Filter Active</span>
-              <button onClick={() => setActiveFilter(null)} className="hover:text-blue-900">
+              <span>{activeFilterLabel}</span>
+              <button onClick={handleClearFilters} className="hover:text-blue-900 font-bold ml-1">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
+          )}
+
+          {selectedRows.length > 0 && (
+            <button
+              onClick={handleBulkAuditSelected}
+              disabled={bulkAuditing}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-xs"
+            >
+              <Bot className="w-3.5 h-3.5" />
+              <span>
+                {bulkAuditing
+                  ? bulkAuditProgress || 'Auditing...'
+                  : `Bulk AI Audit (${selectedRows.length} selected)`}
+              </span>
+            </button>
           )}
 
           <button
@@ -457,7 +642,7 @@ export default function TreasuryDashboardPage() {
             <span>ESCROW UNDER HOLD</span>
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-semibold font-mono-numbers text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-semibold font-mono text-slate-900 dark:text-slate-100">
             ${metrics.totalHold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="mt-1 text-[11px] text-slate-400 font-mono">
@@ -470,7 +655,7 @@ export default function TreasuryDashboardPage() {
             <span>SETTLED DISBURSEMENTS</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="text-2xl font-semibold font-mono-numbers text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-semibold font-mono text-slate-900 dark:text-slate-100">
             ${metrics.totalCaptured.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="mt-1 text-[11px] text-emerald-600 font-mono flex items-center gap-1">
@@ -483,7 +668,7 @@ export default function TreasuryDashboardPage() {
             <span>DISPUTE RATE</span>
             <ShieldAlert className="w-4 h-4 text-red-500" />
           </div>
-          <div className="text-2xl font-semibold font-mono-numbers text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-semibold font-mono text-slate-900 dark:text-slate-100">
             {metrics.disputeRate}%
           </div>
           <div className="mt-1 text-[11px] text-red-600 font-mono">
@@ -493,49 +678,104 @@ export default function TreasuryDashboardPage() {
 
         <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-mono mb-2">
-            <span>AUTONOMOUS AGENT</span>
+            <span>AUTONOMOUS CONTROLLER</span>
             <Bot className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="text-2xl font-semibold font-mono-numbers text-slate-900 dark:text-slate-100">
-            Active
+          <div className="text-2xl font-semibold font-mono text-slate-900 dark:text-slate-100">
+            Online
           </div>
           <div className="mt-1 text-[11px] text-blue-600 font-mono">
-            SSRF-Guarded Delivery Probes
+            SSRF Guard · Multi-Tool Agent
           </div>
         </div>
       </div>
 
       {/* Main AG Grid Blotter */}
       <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg shadow-xs overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-200 dark:border-[#1E2230] flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
+        <div className="px-4 py-3 border-b border-slate-200 dark:border-[#1E2230] flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/40">
           <div className="flex items-center gap-2">
             <Coins className="w-4 h-4 text-slate-700 dark:text-slate-300" />
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Live Financial Blotter ({rowData.length} entries)
+              Live Financial Blotter ({transactions.length} entries)
             </span>
           </div>
-          <span className="text-[11px] font-mono text-slate-400">
-            ag-grid-react 36.2 · Monospace Tabular Numerals
-          </span>
+
+          <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
+            <span>ag-grid-react 36.2</span>
+            <span>·</span>
+            <span>Multi-Row Selection</span>
+            <span>·</span>
+            <span>Floating Filters</span>
+          </div>
         </div>
 
-        <div className="h-[480px] w-full ag-theme-alpine">
+        <div className="h-[520px] w-full ag-theme-alpine">
           <AgGridReact<FinancialBlotterRow>
             ref={gridRef}
-            rowData={rowData}
+            rowData={transactions}
             columnDefs={columnDefs}
             loading={loading}
             defaultColDef={{
               sortable: true,
               filter: true,
               resizable: true,
+              floatingFilter: true,
             }}
+            rowSelection="multiple"
+            onSelectionChanged={onSelectionChanged}
             animateRows={true}
             pagination={true}
             paginationPageSize={10}
           />
         </div>
       </div>
+
+      {/* Raw PayPal JSON Inspection Modal */}
+      {rawJsonModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-[#11131A] border border-slate-300 dark:border-[#1E2230] rounded-lg max-w-2xl w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <Code2 className="w-5 h-5 text-blue-600" />
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {rawJsonModal.title}
+                </h3>
+              </div>
+              <button onClick={() => setRawJsonModal(null)} className="text-slate-400 hover:text-slate-600">
+                ✕
+              </button>
+            </div>
+
+            <div className="relative">
+              <pre className="p-4 rounded bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto max-h-96">
+                {(() => {
+                  try {
+                    return JSON.stringify(JSON.parse(rawJsonModal.json), null, 2);
+                  } catch {
+                    return rawJsonModal.json;
+                  }
+                })()}
+              </pre>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(rawJsonModal.json, 'Raw PayPal JSON')}
+                className="absolute top-2 right-2 px-2.5 py-1 text-[11px] font-mono rounded bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700"
+              >
+                Copy JSON
+              </button>
+            </div>
+
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+              <button
+                onClick={() => setRawJsonModal(null)}
+                className="px-4 py-1.5 text-xs font-semibold rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
+              >
+                Close Inspector
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Proof-of-Delivery Inspection Modal */}
       {inspectedTx && (

@@ -58,6 +58,7 @@ export async function POST(
     redactedDetails: details,
     previousHash: prevHash,
     recordHash,
+    timestamp: new Date(timestamp),
   });
 
   secureLogger.info('Simulated Sandbox Buyer Approval & Settle Executed', { orderId: tx.paypalOrderId });
@@ -69,3 +70,4 @@ export async function POST(
     message: 'Simulated Sandbox Buyer Approval & Settlement completed successfully.',
   });
 }
+

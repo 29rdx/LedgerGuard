@@ -126,6 +126,7 @@ export async function POST(
       redactedDetails: details,
       previousHash: prevHash,
       recordHash,
+      timestamp: new Date(timestamp),
     });
 
     return NextResponse.json({

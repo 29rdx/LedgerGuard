@@ -57,3 +57,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to apply credentials', details: String(error) }, { status: 500 });
   }
 }
+

@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
           await prisma.auditLog.create({
             data: {
               organizationId: tx.organizationId,
+              timestamp: new Date(timestamp),
               actor,
               action,
               targetId: tx.id,

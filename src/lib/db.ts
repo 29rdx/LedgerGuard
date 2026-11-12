@@ -139,6 +139,7 @@ export function getTenantDb(organizationId: string) {
         redactedDetails: string;
         previousHash: string;
         recordHash: string;
+        timestamp?: Date | string;
       }) => {
         return prisma.auditLog.create({
           data: {
@@ -151,6 +152,7 @@ export function getTenantDb(organizationId: string) {
             redactedDetails: data.redactedDetails,
             previousHash: data.previousHash,
             recordHash: data.recordHash,
+            timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
           },
         });
       },

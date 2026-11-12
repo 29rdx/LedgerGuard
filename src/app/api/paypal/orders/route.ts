@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
       redactedDetails: details,
       previousHash: prevHash,
       recordHash,
+      timestamp: new Date(timestamp),
     });
 
     secureLogger.info('PayPal Escrow Order Placed', { orderId: paypalRes.orderId, amount: data.amount });

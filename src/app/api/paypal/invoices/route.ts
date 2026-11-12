@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     const transaction = await tenantDb.transactions.create({
       data: {
         paypalOrderId: mockOrderId,
-        paypalInvoiceId: invoiceNumber,
+        paypalInvoiceId: invoiceRes.invoiceId,
         vendorName: counterpartyName,
         vendorEmail: counterpartyEmail,
         category: 'SAAS_LICENSE',
@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
       redactedDetails: details,
       previousHash: prevHash,
       recordHash,
+      timestamp: new Date(timestamp),
     });
 
     secureLogger.info('PayPal Invoice Generated', { invoiceNumber, invoiceId: invoiceRes.invoiceId });
