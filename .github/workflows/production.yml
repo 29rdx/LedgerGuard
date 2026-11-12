@@ -58,3 +58,4 @@ jobs:
           DATABASE_URL: 'file:./dev.db'
           JWT_SECRET: 'ledgerguard_ci_cd_test_secret_32bytes_minimum_entropy'
           NEXT_TELEMETRY_DISABLED: 1
+

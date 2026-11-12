@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { AgGridReact } from 'ag-grid-react';
+import dynamic from 'next/dynamic';
+import type { AgGridReact } from 'ag-grid-react';
 import { ColDef, ICellRendererParams, SelectionChangedEvent } from 'ag-grid-community';
 import {
   ShieldAlert,
@@ -28,7 +29,21 @@ import {
   ShieldCheck,
   AlertTriangle,
 } from 'lucide-react';
-import { TreasuryInsights } from '@/components/TreasuryInsights';
+import { BlotterSkeleton } from '@/components/FinancialBlotterGrid';
+import { TreasuryInsightsSkeleton } from '@/components/TreasuryInsights';
+
+const FinancialBlotterGrid = dynamic(() => import('@/components/FinancialBlotterGrid'), {
+  ssr: false,
+  loading: () => <BlotterSkeleton />,
+});
+
+const TreasuryInsights = dynamic(
+  () => import('@/components/TreasuryInsights').then((mod) => mod.TreasuryInsights),
+  {
+    ssr: false,
+    loading: () => <TreasuryInsightsSkeleton />,
+  }
+);
 import {
   FinancialBlotterRow,
   AgentActionDirective,
@@ -712,6 +727,16 @@ export default function TreasuryDashboardPage() {
     [session?.role, auditLoadingId, simulatingId]
   );
 
+  const defaultColDef: ColDef = useMemo(
+    () => ({
+      sortable: true,
+      filter: true,
+      resizable: true,
+      floatingFilter: true,
+    }),
+    []
+  );
+
   return (
     <div className="space-y-6">
       {/* Toast Notification */}
@@ -852,47 +877,14 @@ export default function TreasuryDashboardPage() {
       <TreasuryInsights />
 
       {/* Main AG Grid Blotter */}
-      <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg shadow-xs overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-200 dark:border-[#1E2230] flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/40">
-          <div className="flex items-center gap-2">
-            <Coins className="w-4 h-4 text-slate-700 dark:text-slate-300" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Live Financial Blotter ({transactions.length} entries)
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
-            <span>ag-grid-react 36.2</span>
-            <span>·</span>
-            <span>Multi-Row Selection</span>
-            <span>·</span>
-            <span>Floating Filters</span>
-            <span>·</span>
-            <span>SSE Real-Time Sync</span>
-          </div>
-        </div>
-
-        <div className="h-[520px] w-full ag-theme-alpine">
-          <AgGridReact<FinancialBlotterRow>
-            ref={gridRef}
-            rowData={transactions}
-            columnDefs={columnDefs}
-            loading={loading}
-            getRowId={(params) => params.data.id}
-            defaultColDef={{
-              sortable: true,
-              filter: true,
-              resizable: true,
-              floatingFilter: true,
-            }}
-            rowSelection="multiple"
-            onSelectionChanged={onSelectionChanged}
-            animateRows={true}
-            pagination={true}
-            paginationPageSize={10}
-          />
-        </div>
-      </div>
+      <FinancialBlotterGrid
+        gridRef={gridRef}
+        rowData={transactions}
+        columnDefs={columnDefs}
+        loading={loading}
+        onSelectionChanged={onSelectionChanged}
+        defaultColDef={defaultColDef}
+      />
 
       {/* Multi-Agent Dispute Resolution Modal */}
       {negotiatingTx && (

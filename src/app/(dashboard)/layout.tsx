@@ -25,6 +25,7 @@ import {
 import { UserSession } from '@/types';
 import { JUDGE_PROMPT_CHIPS } from '@/lib/agent-engine';
 import { CommandPalette } from '@/components/CommandPalette';
+import { DemoFailsafeProvider, DemoFailsafeIndicator } from '@/components/DemoFailsafeContext';
 
 export default function DashboardLayout({
   children,
@@ -203,7 +204,8 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 dark:bg-[#090A0F] overflow-hidden">
+    <DemoFailsafeProvider>
+      <div className="flex h-screen w-full bg-slate-50 dark:bg-[#090A0F] overflow-hidden">
       {/* 1. Command Rail */}
       <aside className="w-64 bg-white dark:bg-[#11131A] border-r border-slate-200 dark:border-[#1E2230] flex flex-col shrink-0 select-none">
         <div className="h-14 px-4 flex items-center gap-2.5 border-b border-slate-200 dark:border-[#1E2230]">
@@ -347,6 +349,8 @@ export default function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-2">
+            <DemoFailsafeIndicator />
+
             <button
               onClick={() => setIsCommandPaletteOpen(true)}
               className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs"
@@ -466,5 +470,6 @@ export default function DashboardLayout({
         </aside>
       )}
     </div>
+    </DemoFailsafeProvider>
   );
 }

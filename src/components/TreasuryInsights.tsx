@@ -29,6 +29,21 @@ const VELOCITY_DATA: VelocityPoint[] = [
   { day: 'Day 30', amount: 184500, holds: 42350 },
 ];
 
+export function TreasuryInsightsSkeleton() {
+  return (
+    <div className="bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] rounded-lg shadow-xs overflow-hidden animate-pulse">
+      <div className="px-4 py-3 border-b border-slate-200 dark:border-[#1E2230] flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
+        <div className="h-4 w-56 bg-slate-200 dark:bg-slate-800 rounded" />
+        <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+      </div>
+      <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 h-44 bg-slate-100 dark:bg-slate-900/60 rounded border border-slate-200 dark:border-slate-800/60" />
+        <div className="h-44 bg-slate-100 dark:bg-slate-900/60 rounded border border-slate-200 dark:border-slate-800/60" />
+      </div>
+    </div>
+  );
+}
+
 export function TreasuryInsights() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [activePoint, setActivePoint] = useState<VelocityPoint | null>(null);
@@ -261,3 +276,4 @@ export function TreasuryInsights() {
     </div>
   );
 }
+

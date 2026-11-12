@@ -4,6 +4,7 @@ import { validateSsrfUrl } from './ssrf-guard';
 import { secureLogger } from './secure-logger';
 import { paypalClient } from './paypal-client';
 import { aiCircuitBreaker } from './circuit-breaker';
+import { isDemoFailsafeActive, getMockDeliveryAudit } from './demo-failsafe';
 
 export interface AuditDeliveryParams {
   transactionId: string;
@@ -228,6 +229,17 @@ export const agentEngine = {
    * verifies policy thresholds, and decides auto-capture eligibility.
    */
   async auditDelivery(params: AuditDeliveryParams): Promise<AuditDeliveryResult> {
+    if (isDemoFailsafeActive()) {
+      secureLogger.info('[Failsafe Interceptor] Autonomous delivery audit returning zero-latency verified result', {
+        transactionId: params.transactionId,
+      });
+      return getMockDeliveryAudit({
+        transactionId: params.transactionId,
+        vendorName: 'Institutional Vendor',
+        amount: params.amount,
+      });
+    }
+
     const reasons: string[] = [];
     let riskScore = 15; // default low risk
     let proofHashVerified = false;
