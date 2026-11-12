@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id                  String              @id @default(uuid())
+  name                String
+  paypalMerchantId    String?             @default("MERCHANT-APEX-GLOBAL-01")
+  jurisdiction        String?             @default("Delaware, USA (C-Corp)")
+  currency            String?             @default("USD")
+  onboardingCompleted Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  users               User[]
+  transactions        LedgerTransaction[]
+  policies            TreasuryPolicy[]
+  auditLogs           AuditLog[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String       @unique
+  name           String
+  passwordHash   String
+  role           String       @default("TREASURY_ADMIN") // "TREASURY_ADMIN" | "AUDITOR"
+  mfaEnabled     Boolean      @default(true)
+  mfaSecret      String       @default("JBSWY3DPEHPK3PXP")
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+}
+
+model LedgerTransaction {
+  id                  String       @id @default(uuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paypalOrderId       String       @unique
+  paypalAuthId        String?
+  paypalCaptureId     String?
+  paypalInvoiceId     String?
+  vendorName          String
+  vendorEmail         String
+  category            String       @default("CONTRACTOR_ESCROW") // CLOUD_INFRA | CONTRACTOR_ESCROW | SAAS_LICENSE | LOGISTICS
+  amount              Float
+  currency            String       @default("USD")
+  status              String       @default("AUTHORIZED_HOLD") // CREATED | AUTHORIZED_HOLD | AUDIT_PASSED | CAPTURED | REFUNDED | FLAGGED_DISPUTE
+  deliverableProofUrl String?
+  deliverableSummary  String?
+  proofFileHash       String?
+  aiRiskScore         Int          @default(15) // 0-100 (lower is safer)
+  aiAuditVerdict      String?      // "APPROVED" | "FLAGGED" | "PENDING_REVIEW"
+  aiAuditReasoning    String?
+  approvalLink        String?
+  rawPaypalResponse   String?      // Redacted JSON text
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+model TreasuryPolicy {
+  id                     String       @id @default(uuid())
+  organizationId         String
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                   String
+  maxAutoCaptureAmount   Float        @default(2500.0)
+  mfaStepUpThreshold     Float        @default(1000.0)
+  requireProofOfDelivery Boolean      @default(true)
+  maxAllowedRiskScore    Int          @default(35)
+  isActive               Boolean      @default(true)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id              String       @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  timestamp       DateTime     @default(now())
+  actor           String       @default("USER") // USER | AI_AGENT | PAYPAL_WEBHOOK | SECURITY_GUARD
+  action          String
+  targetId        String
+  paypalEndpoint  String?
+  httpStatus      Int?
+  redactedDetails String
+  previousHash    String
+  recordHash      String       // SHA-256
+
+  @@index([organizationId])
+  @@index([recordHash])
+}

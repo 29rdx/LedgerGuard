@@ -74,7 +74,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/auth/me') ||
     pathname.startsWith('/api/auth/logout') ||
     pathname === '/api/paypal/webhooks' ||
-    pathname === '/api/security/verify-all';
+    pathname === '/api/security/verify-all' ||
+    pathname === '/api/chat' ||
+    pathname === '/api/automation/audit-cron';
 
   const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   let verifiedPayload: Record<string, unknown> | null = null;
@@ -96,7 +98,8 @@ export async function middleware(request: NextRequest) {
     pathname !== '/api/auth/login' &&
     !pathname.startsWith('/api/auth/magic-link') &&
     pathname !== '/api/auth/logout' &&
-    pathname !== '/api/paypal/webhooks' // PayPal webhooks authenticate via transmission headers
+    pathname !== '/api/paypal/webhooks' && // PayPal webhooks authenticate via transmission headers
+    pathname !== '/api/automation/audit-cron' // Cron automation authenticates via CRON_SECRET Bearer token
   ) {
     const csrfCookie = request.cookies.get(CSRF_COOKIE_NAME)?.value;
     const csrfHeader = request.headers.get('x-csrf-token');

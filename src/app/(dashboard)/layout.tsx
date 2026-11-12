@@ -11,21 +11,19 @@ import {
   Lock,
   Settings,
   LogOut,
-  Bot,
   ChevronRight,
-  Send,
-  X,
   Sparkles,
   Key,
   UserCheck,
   UserCog,
   Search,
   Building2,
+  Bot,
 } from 'lucide-react';
 import { UserSession } from '@/types';
-import { JUDGE_PROMPT_CHIPS } from '@/lib/agent-engine';
 import { CommandPalette } from '@/components/CommandPalette';
 import { DemoFailsafeProvider, DemoFailsafeIndicator } from '@/components/DemoFailsafeContext';
+import { AgenticTreasuryDrawer } from '@/components/AgenticTreasuryDrawer';
 import { Logo3D } from '@/components/Logo3D';
 
 export default function DashboardLayout({
@@ -48,18 +46,7 @@ export default function DashboardLayout({
   // AI Drawer State
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
   const [switchingRole, setSwitchingRole] = useState(false);
-  const [aiMessages, setAiMessages] = useState<
-    Array<{ role: 'user' | 'agent'; text: string; details?: string }>
-  >([
-    {
-      role: 'agent',
-      text: 'LedgerGuard Autonomous Treasury Agent online. Multi-tool controller connected to PayPal Orders v2, Invoicing v2, and AG Grid.',
-      details: 'Select a 1-click prompt chip below or type custom natural language treasury commands.',
-    },
-  ]);
 
   const fetchSession = async () => {
     try {
@@ -141,56 +128,6 @@ export default function DashboardLayout({
       console.error('Role switch failed', err);
     } finally {
       setSwitchingRole(false);
-    }
-  };
-
-  const handleSendAiPrompt = async (promptToSend?: string) => {
-    const text = (promptToSend || aiPrompt).trim();
-    if (!text || aiLoading) return;
-
-    setAiMessages((prev) => [...prev, { role: 'user', text }]);
-    setAiPrompt('');
-    setAiLoading(true);
-
-    try {
-      const res = await fetch('/api/agent/command', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: text }),
-      });
-      const data = await res.json();
-
-      if (data.success && data.directive) {
-        setAiMessages((prev) => [
-          ...prev,
-          {
-            role: 'agent',
-            text: data.directive.summary,
-            details: data.directive.recommendedNextStep,
-          },
-        ]);
-
-        // Dispatch directive event to AG Grid
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(
-            new CustomEvent('ledgerguard:agent-directive', {
-              detail: data.directive,
-            })
-          );
-        }
-      } else {
-        setAiMessages((prev) => [
-          ...prev,
-          { role: 'agent', text: data.error || 'Agent encountered an error executing directive.' },
-        ]);
-      }
-    } catch {
-      setAiMessages((prev) => [
-        ...prev,
-        { role: 'agent', text: 'Communication error with Autonomous Treasury Agent.' },
-      ]);
-    } finally {
-      setAiLoading(false);
     }
   };
 
@@ -382,93 +319,12 @@ export default function DashboardLayout({
         />
       </div>
 
-      {/* 3. Dockable AI Treasury Drawer */}
-      {isAiDrawerOpen && (
-        <aside className="w-96 liquid-ice-elevated border-l border-sky-400/25 dark:border-sky-500/20 flex flex-col h-screen shrink-0 shadow-2xl z-30 animate-in slide-in-from-right duration-300 backdrop-blur-3xl">
-          <div className="h-14 px-4 flex items-center justify-between border-b border-sky-400/20 dark:border-sky-500/20 bg-white/20 dark:bg-sky-950/30">
-            <div className="flex items-center gap-2">
-              <Bot className="w-4 h-4 text-sky-400" />
-              <div className="text-xs font-semibold text-slate-900 dark:text-sky-100">
-                AI Treasury Agent Console
-              </div>
-            </div>
-            <button
-              onClick={() => setIsAiDrawerOpen(false)}
-              className="p-1.5 rounded-lg hover:bg-sky-500/20 text-slate-400 hover:text-slate-100 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 font-sans text-xs">
-            {aiMessages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`p-3 rounded-xl border leading-relaxed backdrop-blur-md transition-all ${
-                  msg.role === 'user'
-                    ? 'ml-6 bg-sky-600/90 text-white border-sky-400/40 shadow-sm'
-                    : 'mr-6 liquid-ice border-sky-400/20 dark:border-sky-500/20 text-slate-800 dark:text-sky-100'
-                }`}
-              >
-                <div>{msg.text}</div>
-                {msg.details && (
-                  <div className="mt-1.5 pt-1.5 border-t border-sky-400/20 dark:border-sky-500/20 text-[11px] font-mono text-sky-700 dark:text-sky-300/80">
-                    {msg.details}
-                  </div>
-                )}
-              </div>
-            ))}
-            {aiLoading && (
-              <div className="p-3 rounded-xl liquid-ice border-sky-400/30 text-sky-300 text-xs flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
-                <span>Executing multi-tool agent action...</span>
-              </div>
-            )}
-          </div>
-
-          {/* 1-Click Judge Prompt Chips */}
-          <div className="p-3 border-t border-sky-400/20 dark:border-sky-500/20 bg-white/10 dark:bg-sky-950/30">
-            <div className="text-[10px] font-mono uppercase text-sky-400 font-semibold mb-2">
-              1-Click Judge Test Prompts
-            </div>
-            <div className="space-y-1.5">
-              {JUDGE_PROMPT_CHIPS.map((chip, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSendAiPrompt(chip)}
-                  className="w-full text-left p-1.5 rounded-lg border border-sky-400/20 dark:border-sky-500/20 bg-white/30 dark:bg-sky-950/40 text-[11px] font-mono text-slate-700 dark:text-sky-200 hover:bg-sky-500/20 hover:border-sky-400/40 transition-all truncate"
-                  title={chip}
-                >
-                  › {chip}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendAiPrompt();
-            }}
-            className="p-3 border-t border-sky-400/20 dark:border-sky-500/20 flex items-center gap-2 bg-white/10 dark:bg-sky-950/40"
-          >
-            <input
-              type="text"
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder="Command treasury agent..."
-              className="flex-1 px-3 py-2 text-xs rounded-xl ice-input text-slate-900 dark:text-sky-100 placeholder:text-sky-400/50"
-            />
-            <button
-              type="submit"
-              disabled={aiLoading || !aiPrompt.trim()}
-              className="btn-ice btn-ice-primary p-2 rounded-xl"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </button>
-          </form>
-        </aside>
-      )}
+      {/* 3. Dockable AI Treasury Drawer (Streaming Vercel AI SDK) */}
+      <AgenticTreasuryDrawer
+        isOpen={isAiDrawerOpen}
+        onClose={() => setIsAiDrawerOpen(false)}
+        isLlmDegraded={isLlmDegraded}
+      />
     </div>
     </DemoFailsafeProvider>
   );
