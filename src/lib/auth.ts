@@ -112,11 +112,19 @@ export function validateCsrfToken(cookieToken: string | undefined, headerToken: 
 
 /**
  * Server-side helper to read and verify current user session from HttpOnly cookie
+ * or explicit token parameter
  */
-export async function getSession(): Promise<UserSession | null> {
+export async function getSession(explicitToken?: string): Promise<UserSession | null> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    let token = explicitToken;
+    if (!token) {
+      try {
+        const cookieStore = await cookies();
+        token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+      } catch {
+        // Outside Next.js request async storage (e.g. unit/pen testing)
+      }
+    }
     if (!token) return null;
 
     const payload = await verifySessionToken(token);

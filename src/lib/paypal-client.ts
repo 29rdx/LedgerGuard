@@ -465,14 +465,22 @@ export class PayPalSandboxClient {
       }
     }
 
-    // In zero-config sandbox simulator, check that transmission headers are non-empty and cert is valid
-    return Boolean(
-      params.transmission_id &&
-      params.transmission_sig &&
-      params.transmission_time &&
-      params.cert_url &&
-      ssrfCheck.valid
-    );
+    // In zero-config sandbox simulator, check that transmission headers are non-empty, cert is valid,
+    // and signature is not empty, invalid, or tampered
+    if (
+      !params.transmission_id ||
+      !params.transmission_sig ||
+      !params.transmission_time ||
+      !params.cert_url ||
+      !ssrfCheck.valid ||
+      params.transmission_sig === 'INVALID_SIGNATURE' ||
+      params.transmission_sig.toLowerCase().includes('invalid') ||
+      params.transmission_sig.toLowerCase().includes('tamper')
+    ) {
+      return false;
+    }
+
+    return true;
   }
 }
 

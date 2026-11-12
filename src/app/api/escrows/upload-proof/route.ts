@@ -6,7 +6,8 @@ import { computeBlockHash } from '@/lib/crypto-audit';
 import { secureLogger } from '@/lib/secure-logger';
 
 export async function POST(request: NextRequest) {
-  const session = await getSession();
+  const token = request.cookies.get('lg_session')?.value;
+  const session = await getSession(token);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

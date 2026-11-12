@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
     // 2. Cryptographic Signature Verification
     const isSignatureValid = await paypalClient.verifyWebhookSignature({
       auth_algo: authAlgo || 'SHA256withRSA',
-      cert_url: certUrl || 'https://api.sandbox.paypal.com/v1/notifications/certs/CERT-360-17580.pem',
-      transmission_id: transmissionId || 'SIMULATED-TX-ID',
-      transmission_sig: transmissionSig || 'SIMULATED-SIG',
-      transmission_time: transmissionTime || new Date().toISOString(),
+      cert_url: certUrl || '',
+      transmission_id: transmissionId || '',
+      transmission_sig: transmissionSig || '',
+      transmission_time: transmissionTime || '',
       webhook_id: process.env.PAYPAL_WEBHOOK_ID || 'SIMULATED_WEBHOOK',
       webhook_event: event,
     });

@@ -25,8 +25,9 @@ const OnboardingPayloadSchema = z.object({
  * GET /api/onboarding
  * Returns current profile and policy setup
  */
-export async function GET() {
-  const session = await getSession();
+export async function GET(request: NextRequest) {
+  const token = request.cookies.get('lg_session')?.value;
+  const session = await getSession(token);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -69,7 +70,8 @@ export async function GET() {
  * activates treasury policies, and records a cryptographic audit block.
  */
 export async function POST(request: NextRequest) {
-  const session = await getSession();
+  const token = request.cookies.get('lg_session')?.value;
+  const session = await getSession(token);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
