@@ -205,22 +205,35 @@ export default function TreasuryDashboardPage() {
             const updatedRecord: FinancialBlotterRow = payload.transaction;
             if (!updatedRecord) return;
 
-            // 1. Update React state
-            setTransactions((prev) =>
-              prev.map((t) => (t.id === updatedRecord.id ? { ...t, ...updatedRecord } : t))
-            );
+            // 1. Update React state (update if existing, prepend if newly created)
+            setTransactions((prev) => {
+              const exists = prev.some((t) => t.id === updatedRecord.id);
+              if (exists) {
+                return prev.map((t) => (t.id === updatedRecord.id ? { ...t, ...updatedRecord } : t));
+              }
+              return [updatedRecord, ...prev];
+            });
 
             // 2. High-Performance AG Grid API update & Cell Flash
             if (gridRef.current?.api) {
-              gridRef.current.api.applyTransaction({ update: [updatedRecord] });
-
-              const targetNode = gridRef.current.api.getRowNode(updatedRecord.id);
-              if (targetNode) {
+              const existingNode = gridRef.current.api.getRowNode(updatedRecord.id);
+              if (existingNode) {
+                gridRef.current.api.applyTransaction({ update: [updatedRecord] });
                 gridRef.current.api.flashCells({
-                  rowNodes: [targetNode],
+                  rowNodes: [existingNode],
                   flashDuration: 2500,
                   fadeDuration: 1200,
                 });
+              } else {
+                gridRef.current.api.applyTransaction({ add: [updatedRecord], addIndex: 0 });
+                const newNode = gridRef.current.api.getRowNode(updatedRecord.id);
+                if (newNode) {
+                  gridRef.current.api.flashCells({
+                    rowNodes: [newNode],
+                    flashDuration: 2500,
+                    fadeDuration: 1200,
+                  });
+                }
               }
             }
 
