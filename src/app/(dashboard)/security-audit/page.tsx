@@ -60,7 +60,7 @@ export default function SecurityAuditPage() {
           <button
             onClick={runDiagnostics}
             disabled={running}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 transition-colors shadow-xs"
+            className="btn-ice btn-ice-primary text-xs font-semibold px-4 py-2 shadow-md"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>{running ? 'Executing Assertions...' : 'Run Live Diagnostic Probes'}</span>
@@ -71,36 +71,36 @@ export default function SecurityAuditPage() {
       {/* Summary Scorecard */}
       {report && (
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
-            <div className="text-[11px] font-mono text-slate-400 uppercase">Controls Passed</div>
-            <div className="text-2xl font-semibold font-mono text-emerald-600 mt-1">
+          <div className="liquid-ice-card p-5 rounded-2xl border-sky-400/20 shadow-xl ice-specular-border">
+            <div className="text-[11px] font-mono text-sky-400 uppercase tracking-wider">Controls Passed</div>
+            <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
               {report.controlsPassed} / {report.totalControls}
             </div>
-            <div className="text-[10px] text-slate-400 font-mono mt-1">100% Passing Coverage</div>
+            <div className="text-[10px] text-emerald-400/80 font-mono mt-1">100% Passing Coverage</div>
           </div>
 
-          <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
-            <div className="text-[11px] font-mono text-slate-400 uppercase">OWASP Compliance</div>
-            <div className="text-2xl font-semibold font-mono text-slate-900 dark:text-slate-100 mt-1">
+          <div className="liquid-ice-card p-5 rounded-2xl border-sky-400/20 shadow-xl ice-specular-border">
+            <div className="text-[11px] font-mono text-sky-400 uppercase tracking-wider">OWASP Compliance</div>
+            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-sky-50 mt-1">
               {report.overallScore}%
             </div>
-            <div className="text-[10px] text-emerald-600 font-mono mt-1">Institutional Level-1 Verified</div>
+            <div className="text-[10px] text-emerald-400 font-mono mt-1">Institutional Level-1 Verified</div>
           </div>
 
-          <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
-            <div className="text-[11px] font-mono text-slate-400 uppercase">Cryptographic Audit</div>
-            <div className="text-2xl font-semibold font-mono text-slate-900 dark:text-slate-100 mt-1">
+          <div className="liquid-ice-card p-5 rounded-2xl border-sky-400/20 shadow-xl ice-specular-border">
+            <div className="text-[11px] font-mono text-sky-400 uppercase tracking-wider">Cryptographic Audit</div>
+            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-sky-50 mt-1">
               SHA-256
             </div>
-            <div className="text-[10px] text-slate-400 font-mono mt-1">Tamper-Evident Hash Chain</div>
+            <div className="text-[10px] text-sky-400/70 font-mono mt-1">Tamper-Evident Hash Chain</div>
           </div>
 
-          <div className="p-4 rounded-lg bg-white dark:bg-[#11131A] border border-slate-200 dark:border-[#1E2230] shadow-xs">
-            <div className="text-[11px] font-mono text-slate-400 uppercase">Report Signature</div>
-            <div className="text-xs font-mono text-slate-700 dark:text-slate-300 truncate mt-2">
+          <div className="liquid-ice-card p-5 rounded-2xl border-sky-400/20 shadow-xl ice-specular-border">
+            <div className="text-[11px] font-mono text-sky-400 uppercase tracking-wider">Report Signature</div>
+            <div className="text-xs font-mono text-sky-200 truncate mt-2">
               {report.cryptographicSignature.slice(0, 18)}...
             </div>
-            <div className="text-[10px] text-slate-400 font-mono mt-1">Signed at {new Date(report.timestamp).toLocaleTimeString()}</div>
+            <div className="text-[10px] text-sky-400/70 font-mono mt-1">Signed at {new Date(report.timestamp).toLocaleTimeString()}</div>
           </div>
         </div>
       )}
@@ -111,10 +111,10 @@ export default function SecurityAuditPage() {
           <button
             key={cat}
             onClick={() => setFilterCategory(cat)}
-            className={`px-3 py-1 rounded font-mono text-[11px] transition-colors ${
+            className={`px-3 py-1.5 rounded-xl font-mono text-[11px] transition-all duration-300 ${
               filterCategory === cat
-                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold'
-                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                ? 'bg-sky-500/20 text-sky-100 border border-sky-400/40 shadow-[0_0_15px_rgba(56,189,248,0.25)] font-semibold'
+                : 'liquid-ice border-sky-400/15 text-slate-600 dark:text-sky-300/70 hover:bg-sky-500/10 hover:text-sky-100'
             }`}
           >
             {cat}
@@ -123,8 +123,8 @@ export default function SecurityAuditPage() {
       </div>
 
       {/* Security Matrix Table */}
-      <div className="liquid-glass rounded-2xl border border-white/20 dark:border-white/10 shadow-xl overflow-hidden specular-border">
-        <div className="px-5 py-3.5 border-b border-white/10 dark:border-white/10 flex items-center justify-between bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
+      <div className="liquid-ice-card rounded-2xl border border-sky-400/25 dark:border-sky-500/20 shadow-2xl overflow-hidden ice-specular-border backdrop-blur-3xl">
+        <div className="px-5 py-3.5 border-b border-sky-400/20 dark:border-sky-500/15 flex items-center justify-between bg-white/30 dark:bg-sky-950/30 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-emerald-400" />
             <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 font-mono">

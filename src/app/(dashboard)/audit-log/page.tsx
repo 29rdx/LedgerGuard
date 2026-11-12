@@ -127,7 +127,7 @@ export default function AuditLogPage() {
             onClick={fetchLogs}
             disabled={loading}
             title="Refresh Audit Trail"
-            className="p-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 hover:bg-slate-50 transition-colors"
+            className="btn-ice p-2 text-slate-400 hover:text-sky-200 transition-all"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -135,28 +135,28 @@ export default function AuditLogPage() {
           <button
             onClick={handleSimulateWebhook}
             disabled={simulatingWebhook}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors shadow-xs"
+            className="btn-ice text-xs font-semibold text-sky-700 dark:text-sky-200 border-sky-400/30 bg-sky-500/10 hover:bg-sky-500/20 shadow-xs"
           >
-            <Radio className="w-3.5 h-3.5" />
+            <Radio className="w-3.5 h-3.5 text-sky-400" />
             <span>{simulatingWebhook ? 'Dispatching Webhook...' : 'Live PayPal Webhook Simulator'}</span>
           </button>
 
           <a
             href="/api/export/audit-report"
             download
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs"
+            className="btn-ice text-xs font-semibold text-slate-700 dark:text-sky-200 hover:text-white shadow-xs"
             title="Download SOC2 Compliance Cryptographic Audit Report (CSV)"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-sky-400" />
             <span>Download SOC2 Compliance Report (CSV)</span>
           </a>
 
           <button
             onClick={handleVerifyChain}
             disabled={verifying}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-xs"
+            className="btn-ice btn-ice-primary text-xs font-semibold shadow-md"
           >
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-3.5 h-3.5 text-cyan-200" />
             <span>{verifying ? 'Traversing Chain...' : 'Verify Cryptographic Integrity'}</span>
           </button>
         </div>
@@ -207,27 +207,27 @@ export default function AuditLogPage() {
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="w-4 h-4 text-cyan-400 absolute left-3.5 top-3" />
+        <Search className="w-4 h-4 text-sky-400 absolute left-3.5 top-3" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by action, actor (USER, AI_AGENT, PAYPAL_WEBHOOK, SECURITY_GUARD), or order ID..."
-          className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-white/20 dark:border-white/10 liquid-glass text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 shadow-inner"
+          className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl ice-input text-slate-900 dark:text-sky-50 shadow-inner"
         />
       </div>
 
       {/* Hash Chained Timeline */}
       <div className="space-y-3.5">
         {filteredLogs.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 font-mono text-xs border border-dashed border-white/20 rounded-2xl liquid-glass">
+          <div className="p-8 text-center text-sky-400/70 font-mono text-xs border border-dashed border-sky-400/25 rounded-2xl liquid-ice">
             No audit log records match the search query.
           </div>
         ) : (
           filteredLogs.map((log) => (
             <div
               key={log.id}
-              className="p-5 rounded-2xl liquid-glass-card border border-white/10 dark:border-white/10 shadow-lg space-y-3 font-mono text-xs specular-border"
+              className="p-5 rounded-2xl liquid-ice-card border border-sky-400/20 dark:border-sky-500/15 shadow-xl space-y-3 font-mono text-xs ice-specular-border backdrop-blur-2xl"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

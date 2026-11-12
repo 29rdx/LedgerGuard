@@ -67,26 +67,26 @@ export const FinancialBlotterGrid = memo(function FinancialBlotterGrid({
   );
 
   return (
-    <div className="liquid-glass rounded-2xl border border-white/20 dark:border-white/10 shadow-xl overflow-hidden specular-border">
-      <div className="px-5 py-3.5 border-b border-white/10 dark:border-white/10 flex flex-wrap items-center justify-between gap-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
+    <div className="liquid-ice-card rounded-2xl border border-sky-400/25 dark:border-sky-500/20 shadow-2xl overflow-hidden ice-specular-border backdrop-blur-3xl">
+      <div className="px-5 py-3.5 border-b border-sky-400/20 dark:border-sky-500/15 flex flex-wrap items-center justify-between gap-2 bg-white/30 dark:bg-sky-950/30 backdrop-blur-xl">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-cyan-400">
+          <div className="p-1.5 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.25)]">
             <Coins className="w-4 h-4" />
           </div>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-sky-100">
             Live Financial Blotter ({rowData.length} entries)
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
-          <span className="text-cyan-400 font-semibold">ag-grid-react 36.2</span>
+        <div className="flex items-center gap-3 text-[11px] font-mono text-sky-700 dark:text-sky-300/70">
+          <span className="text-sky-400 font-semibold">ag-grid-react 36.2</span>
           <span>·</span>
           <span>Multi-Row Selection</span>
           <span>·</span>
           <span>Floating Filters</span>
           <span>·</span>
           <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
             <span>SSE Real-Time Sync</span>
           </span>
         </div>

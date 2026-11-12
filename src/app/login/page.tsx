@@ -214,27 +214,27 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-slate-50 dark:bg-[#090A0F]">
+    <div className="min-h-screen w-full flex bg-transparent">
       {/* ============================================================ */}
-      {/* LEFT COLUMN: Translucent Liquid Glass Authentication Panel */}
+      {/* LEFT COLUMN: Translucent Liquid Ice Authentication Panel     */}
       {/* ============================================================ */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 liquid-glass-elevated border-r border-white/10 dark:border-white/10 backdrop-blur-3xl relative z-10">
+      <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 liquid-ice-elevated border-r border-sky-400/25 dark:border-sky-500/20 backdrop-blur-3xl relative z-10 specular-border">
         {/* Top Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo3D size="md" />
             <div>
-              <div className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
+              <div className="text-base font-bold tracking-tight text-slate-900 dark:text-sky-50 leading-tight">
                 LedgerGuard
               </div>
-              <div className="text-[10px] uppercase font-mono tracking-wider text-slate-500 dark:text-slate-400">
+              <div className="text-[10px] uppercase font-mono tracking-wider text-sky-700 dark:text-sky-400/80">
                 Institutional Treasury & Escrow Terminal
               </div>
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-xs font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-sky-400/30 bg-sky-500/15 text-sky-700 dark:text-sky-200 text-xs font-mono backdrop-blur-md shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_rgba(56,189,248,0.8)]" />
             PayPal AI Hackathon
           </div>
         </div>
@@ -242,13 +242,13 @@ function LoginForm() {
         {/* Center Auth Form */}
         <div className="w-full max-w-md mx-auto my-auto py-8">
           {/* Prominent Judge Quick-Access Hero Button */}
-          <div className="mb-6 p-5 rounded-2xl liquid-glass-card border border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-cyan-500/5 to-transparent shadow-[0_8px_32px_rgba(5,150,105,0.2)] specular-border">
+          <div className="mb-6 p-5 rounded-2xl liquid-ice-card border border-emerald-400/40 bg-gradient-to-br from-emerald-500/15 via-sky-500/10 to-transparent shadow-[0_8px_32px_rgba(16,185,129,0.25)] ice-specular-border">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" />
+                <Zap className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
                 Hackathon Judge 1-Click Access
               </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-400/30">
                 Zero Setup
               </span>
             </div>
@@ -260,7 +260,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => handleEphemeralJudgeLogin('TREASURY_ADMIN')}
                 disabled={loading}
-                className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
               >
                 <KeyRound className="w-3.5 h-3.5" />
                 VP Treasury (Admin)
@@ -269,9 +269,9 @@ function LoginForm() {
                 type="button"
                 onClick={() => handleEphemeralJudgeLogin('AUDITOR')}
                 disabled={loading}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors disabled:opacity-50"
+                className="btn-ice text-xs font-semibold py-2 text-emerald-800 dark:text-emerald-300 border-emerald-400/30 bg-emerald-500/10 hover:bg-emerald-500/20"
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 Lead Auditor
               </button>
             </div>
@@ -308,7 +308,7 @@ function LoginForm() {
           {authMode === 'credentials' && (
             <form onSubmit={handleCredentialLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-sky-200 mb-1">
                   Corporate Email
                 </label>
                 <input
@@ -317,16 +317,16 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="treasury@apexcapital.io"
-                  className="w-full px-3 py-2 text-xs font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-slate-100"
+                  className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl ice-input text-slate-900 dark:text-sky-50 placeholder:text-sky-400/40"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-sky-200">
                     Password
                   </label>
-                  <span className="text-[11px] text-slate-400 font-mono">Bcrypt Cost-12</span>
+                  <span className="text-[11px] text-sky-600 dark:text-sky-400/70 font-mono">Bcrypt Cost-12</span>
                 </div>
                 <input
                   type="password"
@@ -334,14 +334,14 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••••••"
-                  className="w-full px-3 py-2 text-xs font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-slate-100"
+                  className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl ice-input text-slate-900 dark:text-sky-50 placeholder:text-sky-400/40"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors disabled:opacity-50"
+                className="btn-ice btn-ice-primary w-full py-2.5 text-xs font-semibold rounded-xl shadow-md"
               >
                 <Lock className="w-3.5 h-3.5" />
                 {loading ? 'Authenticating Credentials...' : 'Sign In with Password & MFA'}
@@ -548,19 +548,19 @@ function LoginForm() {
       </div>
 
       {/* ============================================================ */}
-      {/* RIGHT COLUMN: Deep Obsidian Panel & Cryptographic Hash Chain */}
+      {/* RIGHT COLUMN: Crystalline Obsidian Panel & Hash Chain       */}
       {/* ============================================================ */}
-      <div className="hidden lg:flex w-1/2 flex-col justify-between p-12 bg-slate-950 text-slate-100 relative overflow-hidden border-l border-slate-900 select-none">
+      <div className="hidden lg:flex w-1/2 flex-col justify-between p-12 bg-transparent text-slate-100 relative overflow-hidden border-l border-sky-400/20 dark:border-sky-500/15 backdrop-blur-2xl select-none">
         {/* Ambient Grid Background */}
-        <div className="absolute inset-0 opacity-15 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,rgba(56,189,248,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(56,189,248,0.1)_1px,transparent_1px)] bg-[size:32px_32px]" />
 
         {/* Top Badges */}
         <div className="relative z-10 flex items-center justify-between">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-800 bg-slate-900/80 backdrop-blur-md text-xs font-mono text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-sky-400/30 bg-sky-500/15 backdrop-blur-md text-xs font-mono text-sky-300 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
             SHA-256 Immutable Hash Chain Online
           </div>
-          <div className="text-xs font-mono text-slate-500">
+          <div className="text-xs font-mono text-sky-400/70">
             Block Height: #14 · 100% Verified
           </div>
         </div>

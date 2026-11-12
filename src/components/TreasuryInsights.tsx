@@ -68,29 +68,29 @@ export function TreasuryInsights() {
   const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
   return (
-    <div className="mb-6 liquid-glass rounded-2xl border border-white/20 dark:border-white/10 shadow-xl overflow-hidden specular-border">
+    <div className="mb-6 liquid-ice-card rounded-2xl border border-sky-400/25 dark:border-sky-500/20 shadow-2xl overflow-hidden ice-specular-border backdrop-blur-3xl">
       {/* Header Banner */}
-      <div className="px-5 py-3.5 flex items-center justify-between border-b border-white/10 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
+      <div className="px-5 py-3.5 flex items-center justify-between border-b border-sky-400/20 dark:border-sky-500/15 bg-white/30 dark:bg-sky-950/30 backdrop-blur-xl">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-            <Activity className="w-4 h-4 text-emerald-400" />
+          <div className="p-1.5 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.25)]">
+            <Activity className="w-4 h-4 text-sky-400" />
           </div>
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 font-mono">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-sky-100 font-mono">
               Institutional Financial Analytics & Risk Telemetry
             </h3>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-mono bg-sky-500/15 border border-sky-400/30 text-sky-200 font-medium shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
             Live 30-Day Escrow Velocity
           </div>
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-sky-500/15 text-slate-400 hover:text-sky-200 transition-colors"
             title={isExpanded ? 'Collapse Analytics' : 'Expand Analytics'}
           >
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

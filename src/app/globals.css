@@ -6,44 +6,57 @@
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Institutional FinTech Palette */
-  --bg-canvas: #f8fafc;
-  --bg-surface: #ffffff;
-  --border-hairline: rgba(226, 232, 240, 0.8);
-  --text-primary: #0f172a;
-  --text-muted: #475569;
+  /* Liquid Glass Ice Palette — Light Glacial Mode */
+  --bg-canvas: #f0f7ff;
+  --bg-surface: rgba(255, 255, 255, 0.75);
+  --border-hairline: rgba(186, 230, 253, 0.65);
+  --text-primary: #082f49;
+  --text-muted: #0369a1;
 
-  /* Semantic Accents */
-  --pp-blue: #0070ba;
-  --pp-blue-dark: #003087;
-  --pp-cyan: #00cfde;
+  /* Glacial Ice Accents */
+  --ice-cyan: #0284c7;
+  --ice-cyan-bright: #0ea5e9;
+  --ice-frost: #38bdf8;
+  --ice-crystal: #e0f2fe;
+  --ice-subzero: #0c4a6e;
+  
   --status-emerald: #059669;
   --status-amber: #d97706;
-  --status-crimson: #dc2626;
+  --status-crimson: #e11d48;
 
-  /* Liquid Glass Tokens (Light Mode) */
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-bg-elevated: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-border-subtle: rgba(226, 232, 240, 0.7);
-  --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.06);
-  --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+  /* Frosted Ice Tokens (Light) */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-border-subtle: rgba(186, 230, 253, 0.45);
+  --glass-shadow: 0 12px 36px -4px rgba(2, 132, 199, 0.08), 0 4px 12px -2px rgba(14, 165, 233, 0.05);
+  --glass-specular: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 1px 0 rgba(186, 230, 253, 0.3);
+  --glass-glow: 0 0 24px rgba(56, 189, 248, 0.15);
 }
 
 .dark {
-  --bg-canvas: #07090e;
-  --bg-surface: #0e121d;
-  --border-hairline: rgba(30, 41, 59, 0.7);
-  --text-primary: #f8fafc;
-  --text-muted: #94a3b8;
+  /* Sub-Zero Obsidian Ice Palette (Institutional FinTech Dark) */
+  --bg-canvas: #040711;
+  --bg-surface: rgba(8, 14, 26, 0.65);
+  --border-hairline: rgba(56, 189, 248, 0.12);
+  --text-primary: #f0f9ff;
+  --text-muted: #7dd3fc;
 
-  /* Liquid Glass Tokens (Dark Mode) */
-  --glass-bg: rgba(13, 17, 28, 0.65);
-  --glass-bg-elevated: rgba(20, 26, 43, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-border-subtle: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
-  --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+  /* Glacial Ice Accents */
+  --ice-cyan: #38bdf8;
+  --ice-cyan-bright: #67e8f9;
+  --ice-frost: #a5f3fc;
+  --ice-crystal: #f0f9ff;
+  --ice-subzero: #082f49;
+
+  /* Frosted Liquid Ice Tokens (Dark) */
+  --glass-bg: rgba(7, 13, 24, 0.62);
+  --glass-bg-elevated: rgba(12, 22, 40, 0.74);
+  --glass-border: rgba(186, 230, 253, 0.18);
+  --glass-border-subtle: rgba(56, 189, 248, 0.08);
+  --glass-shadow: 0 16px 44px -8px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(56, 189, 248, 0.1);
+  --glass-specular: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 1px 0 rgba(56, 189, 248, 0.12);
+  --glass-glow: 0 0 32px rgba(56, 189, 248, 0.18);
 }
 
 body {
@@ -51,6 +64,7 @@ body {
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 .font-mono-numbers {
@@ -59,125 +73,254 @@ body {
 }
 
 /* ========================================================================= */
-/* LIQUID GLASS DESIGN SYSTEM (Translucent Frosted Acrylic)                 */
+/* LIQUID GLASS ICE DESIGN SYSTEM (Frosted Crystalline Acrylic)             */
 /* ========================================================================= */
 
-.liquid-glass {
+.liquid-glass,
+.liquid-ice {
+  background: var(--glass-bg);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-specular);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-elevated,
+.liquid-ice-elevated {
+  background: var(--glass-bg-elevated);
+  backdrop-filter: blur(36px) saturate(200%);
+  -webkit-backdrop-filter: blur(36px) saturate(200%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.65), var(--glass-specular), var(--glass-glow);
+  position: relative;
+}
+
+.liquid-glass-card,
+.liquid-ice-card {
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow), var(--glass-specular);
+  position: relative;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.liquid-glass-elevated {
+.liquid-glass-card:hover,
+.liquid-ice-card:hover {
+  border-color: rgba(125, 211, 252, 0.45);
   background: var(--glass-bg-elevated);
-  backdrop-filter: blur(32px) saturate(190%);
-  -webkit-backdrop-filter: blur(32px) saturate(190%);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.35), var(--glass-specular);
+  box-shadow: 0 20px 48px -6px rgba(2, 132, 199, 0.25), 
+              inset 0 1px 2px 0 rgba(255, 255, 255, 0.4), 
+              0 0 28px rgba(56, 189, 248, 0.22);
+  transform: translateY(-2.5px);
 }
 
-.liquid-glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(170%);
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), var(--glass-specular);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.liquid-glass-card:hover {
-  border-color: rgba(56, 189, 248, 0.4);
-  box-shadow: 0 16px 44px -4px rgba(0, 112, 186, 0.2), inset 0 1px 2px 0 rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-/* Liquid Specular Edge (Hairline light gleam on top of surfaces) */
-.specular-border {
+/* Crystalline Ice Hairline Top Glint */
+.specular-border,
+.ice-specular-border {
   position: relative;
 }
-.specular-border::before {
+
+.specular-border::before,
+.ice-specular-border::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(56, 189, 248, 0.25) 20%, 
+    rgba(224, 242, 254, 0.75) 50%, 
+    rgba(56, 189, 248, 0.25) 80%, 
+    transparent 100%
+  );
   pointer-events: none;
+  z-index: 10;
+}
+
+/* Ice Shimmer Keyframe (Light sheen sweeping across frosted elements) */
+@keyframes ice-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-ice-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(224, 242, 254, 0.12) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: ice-shimmer 6s infinite ease-in-out;
 }
 
 /* ========================================================================= */
-/* AMBIENT FLOATING LIQUID LIGHT ORBS (Organic Dynamic Glows)               */
+/* GLACIAL FROSTED BUTTONS & INPUTS                                         */
 /* ========================================================================= */
 
-@keyframes liquid-orb-float-1 {
+.btn-ice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  border-radius: 0.625rem;
+  padding: 0.5rem 1rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.btn-ice:hover {
+  border-color: rgba(125, 211, 252, 0.5);
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.35), 0 4px 16px rgba(2, 132, 199, 0.25), 0 0 16px rgba(56, 189, 248, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-ice:active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.btn-ice-primary {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.85) 0%, rgba(14, 165, 233, 0.75) 100%);
+  color: #ffffff;
+  border: 1px solid rgba(186, 230, 253, 0.4);
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.4), 0 4px 16px rgba(2, 132, 199, 0.35);
+}
+
+.btn-ice-primary:hover {
+  background: linear-gradient(135deg, rgba(3, 105, 161, 0.95) 0%, rgba(2, 132, 199, 0.85) 100%);
+  border-color: rgba(224, 242, 254, 0.6);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 6px 24px rgba(14, 165, 233, 0.4), 0 0 24px rgba(56, 189, 248, 0.35);
+}
+
+.ice-input {
+  background: rgba(8, 14, 28, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(186, 230, 253, 0.15);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ice-input:focus {
+  outline: none;
+  border-color: rgba(56, 189, 248, 0.65);
+  background: rgba(12, 22, 42, 0.7);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.22), 0 0 18px rgba(56, 189, 248, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ========================================================================= */
+/* AMBIENT FLOATING LIQUID ICE CAUSTIC BLOOMS                               */
+/* ========================================================================= */
+
+@keyframes liquid-ice-float-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(50px, -40px) rotate(8deg) scale(1.12);
+  }
+  66% {
+    transform: translate(-30px, 25px) rotate(-6deg) scale(0.96);
+  }
+}
+
+@keyframes liquid-ice-float-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(-45px, 40px) rotate(-8deg) scale(1.08);
+  }
+  66% {
+    transform: translate(35px, -30px) rotate(6deg) scale(0.94);
+  }
+}
+
+@keyframes liquid-ice-float-3 {
   0%, 100% {
     transform: translate(0px, 0px) scale(1);
   }
   50% {
-    transform: translate(40px, -30px) scale(1.08);
+    transform: translate(30px, 35px) scale(1.15);
   }
 }
 
-@keyframes liquid-orb-float-2 {
+@keyframes liquid-ice-pulse {
   0%, 100% {
-    transform: translate(0px, 0px) scale(1);
+    opacity: 0.6;
   }
   50% {
-    transform: translate(-35px, 35px) scale(0.95);
+    opacity: 0.85;
   }
 }
 
-@keyframes liquid-orb-float-3 {
-  0%, 100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  50% {
-    transform: translate(25px, 20px) scale(1.12);
-  }
+.animate-liquid-orb-1,
+.animate-ice-orb-1 {
+  animation: liquid-ice-float-1 22s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.animate-liquid-orb-1 {
-  animation: liquid-orb-float-1 16s ease-in-out infinite;
+.animate-liquid-orb-2,
+.animate-ice-orb-2 {
+  animation: liquid-ice-float-2 26s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.animate-liquid-orb-2 {
-  animation: liquid-orb-float-2 20s ease-in-out infinite;
+.animate-liquid-orb-3,
+.animate-ice-orb-3 {
+  animation: liquid-ice-float-3 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.animate-liquid-orb-3 {
-  animation: liquid-orb-float-3 18s ease-in-out infinite;
+.animate-ice-pulse {
+  animation: liquid-ice-pulse 8s ease-in-out infinite;
 }
 
 /* ========================================================================= */
-/* INSTITUTIONAL AG GRID LIQUID GLASS THEME OVERRIDES                       */
+/* INSTITUTIONAL AG GRID CRYSTAL ICE THEME                                  */
 /* ========================================================================= */
 
 .ag-theme-alpine {
   --ag-background-color: transparent;
-  --ag-foreground-color: #0f172a;
-  --ag-header-background-color: rgba(248, 250, 252, 0.7);
-  --ag-header-foreground-color: #334155;
-  --ag-border-color: rgba(226, 232, 240, 0.6);
-  --ag-row-hover-color: rgba(241, 245, 249, 0.75);
-  --ag-selected-row-background-color: rgba(224, 242, 254, 0.75);
+  --ag-foreground-color: #082f49;
+  --ag-header-background-color: rgba(240, 249, 255, 0.65);
+  --ag-header-foreground-color: #0369a1;
+  --ag-border-color: rgba(186, 230, 253, 0.5);
+  --ag-row-hover-color: rgba(224, 242, 254, 0.65);
+  --ag-selected-row-background-color: rgba(186, 230, 253, 0.7);
   --ag-font-family: var(--font-sans);
   --ag-font-size: 13px;
   --ag-grid-size: 6px;
-  --ag-header-height: 40px;
-  --ag-row-height: 44px;
+  --ag-header-height: 42px;
+  --ag-row-height: 46px;
 }
 
 .dark .ag-theme-alpine {
   --ag-background-color: transparent;
-  --ag-foreground-color: #f1f5f9;
-  --ag-header-background-color: rgba(18, 24, 38, 0.6);
-  --ag-header-foreground-color: #94a3b8;
-  --ag-border-color: rgba(255, 255, 255, 0.08);
-  --ag-row-hover-color: rgba(30, 41, 59, 0.5);
-  --ag-selected-row-background-color: rgba(0, 112, 186, 0.25);
+  --ag-foreground-color: #f0f9ff;
+  --ag-header-background-color: rgba(10, 18, 34, 0.68);
+  --ag-header-foreground-color: #7dd3fc;
+  --ag-border-color: rgba(186, 230, 253, 0.1);
+  --ag-row-hover-color: rgba(14, 165, 233, 0.12);
+  --ag-selected-row-background-color: rgba(2, 132, 199, 0.28);
 }
 
 .ag-theme-alpine .ag-root-wrapper {
@@ -187,21 +330,27 @@ body {
 
 .ag-theme-alpine .ag-header {
   border-bottom: 1px solid var(--ag-border-color);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--ag-header-background-color) !important;
 }
 
 .ag-theme-alpine .ag-header-cell-label {
   font-weight: 600;
   text-transform: uppercase;
   font-size: 11px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .ag-theme-alpine .ag-row {
   border-bottom: 1px solid var(--ag-border-color);
-  backdrop-filter: blur(8px);
-  transition: background-color 0.15s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease;
+}
+
+.ag-theme-alpine .ag-row:hover {
+  transform: scale-[1.001];
 }
 
 .ag-theme-alpine .ag-cell {
@@ -212,4 +361,31 @@ body {
 .ag-theme-alpine .ag-paging-panel {
   border-top: 1px solid var(--ag-border-color);
   background: transparent !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ========================================================================= */
+/* GLACIAL ICE CUSTOM SCROLLBAR                                             */
+/* ========================================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(4, 7, 17, 0.4);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.25);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.5);
 }

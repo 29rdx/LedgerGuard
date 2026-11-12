@@ -737,10 +737,10 @@ export default function TreasuryDashboardPage() {
     <div className="space-y-6">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-lg shadow-xl text-xs font-mono flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-          <Sparkles className="w-3.5 h-3.5 text-blue-400 dark:text-blue-600 shrink-0" />
+        <div className="fixed bottom-6 right-6 z-50 liquid-ice-elevated border-sky-400/40 text-sky-50 px-4 py-2.5 rounded-xl shadow-[0_8px_32px_rgba(2,132,199,0.35)] text-xs font-mono flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300 backdrop-blur-2xl">
+          <Sparkles className="w-3.5 h-3.5 text-sky-300 shrink-0 animate-pulse" />
           <span>{toastMessage}</span>
-          <button onClick={() => setToastMessage(null)} className="ml-2 hover:opacity-75">
+          <button onClick={() => setToastMessage(null)} className="ml-2 hover:opacity-75 text-sky-300">
             ✕
           </button>
         </div>
@@ -750,32 +750,32 @@ export default function TreasuryDashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              Treasury Blotter & Escrow Blotter
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-sky-50">
+              Treasury Blotter & Escrow Terminal
             </h1>
             {/* Live SSE Indicator */}
             <div
-              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono border ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono border backdrop-blur-md transition-all ${
                 sseConnected
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                  : 'bg-slate-500/15 text-slate-400 border-slate-500/20'
               }`}
               title="Real-Time Server-Sent Events (SSE) Webhook Bridge"
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${sseConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${sseConnected ? 'bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.9)]' : 'bg-slate-400'}`} />
               <span>{sseConnected ? 'SSE Live Stream' : 'SSE Connecting...'}</span>
             </div>
           </div>
-          <p className="text-xs text-slate-500 font-mono mt-0.5">
-            PayPal Orders v2 · Authorize-and-Hold Settlement Terminal · AG Grid Enterprise
+          <p className="text-xs text-sky-700 dark:text-sky-400/70 font-mono mt-0.5">
+            PayPal Orders v2 · Authorize-and-Hold Settlement · Cryptographic SHA-256 Escrow
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {activeFilterLabel && (
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-300 text-xs font-mono">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-200 text-xs font-mono backdrop-blur-md shadow-xs">
               <span>{activeFilterLabel}</span>
-              <button onClick={handleClearFilters} className="hover:text-blue-900 font-bold ml-1">
+              <button onClick={handleClearFilters} className="hover:text-white font-bold ml-1 transition-colors">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -785,7 +785,7 @@ export default function TreasuryDashboardPage() {
             <button
               onClick={handleBulkAuditSelected}
               disabled={bulkAuditing}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-xs"
+              className="btn-ice btn-ice-primary text-xs font-semibold px-3.5 py-1.5 shadow-md"
             >
               <Bot className="w-3.5 h-3.5" />
               <span>
@@ -799,87 +799,87 @@ export default function TreasuryDashboardPage() {
           <button
             onClick={fetchTransactions}
             title="Refresh Blotter"
-            className="p-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 hover:bg-slate-50 transition-colors"
+            className="btn-ice p-2 text-slate-400 hover:text-sky-200 transition-all"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
 
           <button
             onClick={handleExportCsv}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 transition-colors shadow-xs"
+            className="btn-ice px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-sky-200 hover:text-white"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-sky-400" />
             <span>Export CSV</span>
           </button>
         </div>
       </div>
 
-      {/* 4-KPI Strip */}
+      {/* 4-KPI Strip — Frosted Ice Monoliths */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="liquid-glass-card p-5 rounded-2xl relative overflow-hidden group specular-border">
-          <div className="absolute -top-10 -right-10 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none" />
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">
+        <div className="liquid-ice-card p-5 rounded-2xl relative overflow-hidden group ice-specular-border">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl group-hover:bg-amber-400/20 transition-all pointer-events-none" />
+          <div className="flex items-center justify-between text-slate-500 dark:text-sky-300/70 text-xs font-mono mb-2">
             <span className="tracking-wider">ESCROW UNDER HOLD</span>
-            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500">
+            <div className="p-1.5 rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-sky-50">
             ${metrics.totalHold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            <span>{metrics.activeHoldsCount} active authorizations awaiting proof</span>
+          <div className="mt-2 text-[11px] text-slate-500 dark:text-sky-400/80 font-mono flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_rgba(251,191,36,0.9)]" />
+            <span>{metrics.activeHoldsCount} active authorizations under hold</span>
           </div>
         </div>
 
-        <div className="liquid-glass-card p-5 rounded-2xl relative overflow-hidden group specular-border">
-          <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all pointer-events-none" />
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">
+        <div className="liquid-ice-card p-5 rounded-2xl relative overflow-hidden group ice-specular-border">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl group-hover:bg-emerald-400/20 transition-all pointer-events-none" />
+          <div className="flex items-center justify-between text-slate-500 dark:text-sky-300/70 text-xs font-mono mb-2">
             <span className="tracking-wider">SETTLED DISBURSEMENTS</span>
-            <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
+            <div className="p-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-sky-50">
             ${metrics.totalCaptured.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-mono flex items-center gap-1">
             <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>Captured via PayPal v2</span>
+            <span>Captured via PayPal Orders v2</span>
           </div>
         </div>
 
-        <div className="liquid-glass-card p-5 rounded-2xl relative overflow-hidden group specular-border">
-          <div className="absolute -top-10 -right-10 w-28 h-28 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all pointer-events-none" />
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">
+        <div className="liquid-ice-card p-5 rounded-2xl relative overflow-hidden group ice-specular-border">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-all pointer-events-none" />
+          <div className="flex items-center justify-between text-slate-500 dark:text-sky-300/70 text-xs font-mono mb-2">
             <span className="tracking-wider">DISPUTE RATE</span>
-            <div className="p-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500">
+            <div className="p-1.5 rounded-xl bg-rose-500/15 border border-rose-400/30 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)]">
               <ShieldAlert className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+          <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-sky-50">
             {metrics.disputeRate}%
           </div>
-          <div className="mt-2 text-[11px] text-red-600 dark:text-red-400 font-mono">
+          <div className="mt-2 text-[11px] text-rose-600 dark:text-rose-400 font-mono">
             {metrics.flaggedCount} flagged for milestone mismatch
           </div>
         </div>
 
-        <div className="liquid-glass-card p-5 rounded-2xl relative overflow-hidden group specular-border">
-          <div className="absolute -top-10 -right-10 w-28 h-28 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all pointer-events-none" />
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-mono mb-2">
+        <div className="liquid-ice-card p-5 rounded-2xl relative overflow-hidden group ice-specular-border">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-sky-400/15 rounded-full blur-2xl group-hover:bg-sky-400/25 transition-all pointer-events-none" />
+          <div className="flex items-center justify-between text-slate-500 dark:text-sky-300/70 text-xs font-mono mb-2">
             <span className="tracking-wider">MULTI-AGENT CONTROLLER</span>
-            <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+            <div className="p-1.5 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.25)]">
               <Bot className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <div className="text-2xl font-bold font-mono text-slate-900 dark:text-sky-50 flex items-center gap-2">
             <span>Autonomous</span>
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
           </div>
-          <div className="mt-2 text-[11px] text-cyan-600 dark:text-cyan-400 font-mono">
-            SSE Stream · AES-256-GCM ALE
+          <div className="mt-2 text-[11px] text-sky-600 dark:text-sky-400 font-mono">
+            SSE Stream · AES-256-GCM Vault
           </div>
         </div>
       </div>

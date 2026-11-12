@@ -243,23 +243,23 @@ export default function OnboardingPage() {
         {/* STEP 1: Organization Profile */}
         {/* ======================================================== */}
         {step === 1 && (
-          <div className="liquid-glass-elevated rounded-2xl p-6 sm:p-8 space-y-6 specular-border">
+          <div className="liquid-ice-card rounded-3xl p-6 sm:p-8 space-y-6 ice-specular-border backdrop-blur-3xl shadow-2xl">
             <div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 font-mono">
-                <Building2 className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+              <div className="flex items-center gap-2 text-xs font-semibold text-sky-400 uppercase tracking-wider mb-1 font-mono">
+                <Building2 className="w-4 h-4 text-sky-400" />
                 Step 1 of 3 · Corporate Legal Profile
               </div>
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-sky-50">
                 Institutional Entity Registration
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-sky-700 dark:text-sky-400/70 mt-1">
                 Establish the root entity name and legal jurisdiction for cryptographic audit log attribution.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-sky-200 mb-1.5">
                   Legal Entity Name
                 </label>
                 <input
@@ -267,7 +267,7 @@ export default function OnboardingPage() {
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="Apex Global Technologies Inc."
-                  className="w-full px-3 py-2 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl ice-input text-slate-900 dark:text-sky-50"
                 />
               </div>
 
@@ -504,10 +504,10 @@ export default function OnboardingPage() {
                   <div
                     key={tpl.id}
                     onClick={() => applyTemplate(tpl)}
-                    className={`cursor-pointer p-4 rounded-xl border transition-all text-left flex flex-col justify-between backdrop-blur-md relative overflow-hidden group ${
+                    className={`cursor-pointer p-4.5 rounded-2xl border transition-all duration-300 text-left flex flex-col justify-between backdrop-blur-xl relative overflow-hidden group ${
                       isSelected
-                        ? 'border-cyan-500/80 bg-gradient-to-b from-blue-600/20 via-cyan-500/10 to-transparent shadow-[0_8px_24px_rgba(0,112,186,0.3)] ring-1 ring-cyan-400/50'
-                        : 'border-white/10 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 hover:border-white/20'
+                        ? 'border-sky-400/90 bg-gradient-to-b from-sky-500/25 via-cyan-400/15 to-transparent shadow-[0_8px_32px_rgba(56,189,248,0.3)] ring-2 ring-sky-400/60'
+                        : 'border-sky-400/15 dark:border-sky-500/15 bg-white/30 dark:bg-sky-950/30 hover:border-sky-400/35 hover:bg-sky-500/10'
                     }`}
                   >
                     <div>
