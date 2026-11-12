@@ -44,9 +44,14 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
+    pathname.startsWith('/video') ||
+    pathname.startsWith('/audio') ||
     pathname.endsWith('.png') ||
     pathname.endsWith('.svg') ||
-    pathname.endsWith('.css')
+    pathname.endsWith('.css') ||
+    pathname.endsWith('.mp4') ||
+    pathname.endsWith('.m4a') ||
+    pathname.endsWith('.srt')
   ) {
     return NextResponse.next();
   }
@@ -58,6 +63,7 @@ export async function middleware(request: NextRequest) {
     style-src 'self' 'unsafe-inline';
     img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com https://avatars.githubusercontent.com;
     font-src 'self' data:;
+    media-src 'self' data:;
     connect-src 'self' https://api-m.sandbox.paypal.com https://api-m.paypal.com https://api.openai.com;
     frame-ancestors 'none';
     form-action 'self';
@@ -68,7 +74,7 @@ export async function middleware(request: NextRequest) {
 
   // 4. Public unauthenticated paths
   const isGuestOnlyPage = pathname === '/login';
-  const isPublicPage = pathname === '/login' || pathname === '/sandbox-checkout';
+  const isPublicPage = pathname === '/login' || pathname === '/sandbox-checkout' || pathname === '/demo-video';
   const isPublicApi =
     pathname.startsWith('/api/auth/login') ||
     pathname.startsWith('/api/auth/magic-link') ||

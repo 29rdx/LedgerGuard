@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo3D } from '@/components/Logo3D';
 import {
+  Play,
   Shield,
   KeyRound,
   Lock,
@@ -275,6 +277,14 @@ function LoginForm() {
                 Lead Auditor
               </button>
             </div>
+
+            <Link
+              href="/demo-video"
+              className="w-full mt-2.5 py-1.5 px-3 rounded-xl text-[11px] font-medium text-slate-700 dark:text-sky-300 hover:text-white bg-slate-100 dark:bg-white/5 hover:bg-emerald-500/20 border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 transition-all shadow-xs"
+            >
+              <Play className="w-3 h-3 text-emerald-400 fill-emerald-400" />
+              Watch Official 3-Minute Demo Video (1080p)
+            </Link>
           </div>
 
           {/* Divider */}

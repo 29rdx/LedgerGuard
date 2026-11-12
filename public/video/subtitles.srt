@@ -1,0 +1,91 @@
+1
+00:00:00,000 --> 00:00:06,500
+In modern B-to-B commerce, paying an invoice too early is a massive financial risk.
+
+2
+00:00:06,500 --> 00:00:13,800
+Businesses lose billions every year to premature payouts, unverified contractor milestones, and manual invoice reconciliation.
+
+3
+00:00:13,800 --> 00:00:22,000
+And while AI agents can now initiate payments, giving an autonomous agent direct access to company funds—without strict verification—is a recipe for disaster.
+
+4
+00:00:22,000 --> 00:00:29,000
+Meet LedgerGuard: an institutional, agentic treasury and proof-of-delivery escrow terminal, built on the PayPal Developer Platform and AG Grid.
+
+5
+00:00:29,000 --> 00:00:36,500
+Instead of sending irreversible payouts immediately, LedgerGuard uses PayPal Orders v2 to place funds into an Authorized Hold.
+
+6
+00:00:36,500 --> 00:00:43,000
+The capital remains locked in PayPal Sandbox escrow until our autonomous AI Auditor verifies cryptographic proof of delivery.
+
+7
+00:00:43,000 --> 00:00:48,000
+Let's walk through a live end-to-end transaction.
+
+8
+00:00:48,000 --> 00:00:55,500
+From the login portal, judges can click the Instant Sandbox Session button to provision an isolated treasury workspace—
+
+9
+00:00:55,500 --> 00:01:03,000
+secured by HTTP-only JWT cookies, strict CSRF verification, and role-based access control.
+
+10
+00:01:03,000 --> 00:01:10,500
+Inside the main terminal, our financial blotter—powered by AG Grid—tracks every active PayPal authorization, risk score, and settlement state in real time.
+
+11
+00:01:10,500 --> 00:01:18,000
+Pressing Command-K opens the Agentic Treasury Command Bar. Let's instruct the agent to create a $1,450.00 escrow hold for Vertex Semiconductor.
+
+12
+00:01:18,000 --> 00:01:25,000
+Watch what happens behind the scenes: The agent invokes the PayPal Agent Toolkit, authenticates with PayPal's OAuth-2 Sandbox API, and executes an Orders v2 Authorize call.
+
+13
+00:01:25,000 --> 00:01:32,000
+Within milliseconds, our Server-Sent Events stream catches the webhook and flashes the new row directly inside AG Grid with zero page reload.
+
+14
+00:01:32,000 --> 00:01:38,000
+Now, suppose the vendor uploads their delivery manifest and invoice. Before releasing a single dollar, we click Run AI Audit.
+
+15
+00:01:38,000 --> 00:01:45,000
+First, our SSRF and magic-byte file guards validate the uploaded document. Next, the Treasury Auditor Agent cross-checks line items against our active Treasury Policy.
+
+16
+00:01:45,000 --> 00:01:52,000
+If there is a discrepancy, a secondary Negotiator Agent flags the dispute automatically. Here, the delivery proof passes every policy rule with a compliance score of 96%.
+
+17
+00:01:52,000 --> 00:01:58,500
+To release the funds, we trigger Step-Up Multi-Factor Authentication, enter our six-digit verification code, and execute the live PayPal Capture API.
+
+18
+00:01:58,500 --> 00:02:05,000
+The held authorization is settled immediately in the PayPal Sandbox, and AG Grid updates the ledger status to Captured.
+
+19
+00:02:05,000 --> 00:02:12,000
+We can also ask the agent to filter the AG Grid table dynamically—isolating all high-value holds over $1,000—or generate a live PayPal Sandbox Invoice in seconds.
+
+20
+00:02:12,000 --> 00:02:18,500
+Finally, institutional finance demands military-grade security. If we inspect the raw database, sensitive vendor records are encrypted at rest using AES-256-GCM ciphertext.
+
+21
+00:02:18,500 --> 00:02:26,000
+In the Audit Explorer, every single AI decision and PayPal API payload is chained together with SHA-256 hashes—making the ledger completely tamper-evident.
+
+22
+00:02:26,000 --> 00:02:32,000
+And on our live Security Posture screen, we can run an automated 20-point OWASP self-test across SQL injection, XSS, IDOR, and webhook signature verification—passing 20/20 checks live.
+
+23
+00:02:32,000 --> 00:02:35,350
+LedgerGuard turns PayPal into a programmable, verifiable escrow engine for the agentic economy. Thank you for watching.

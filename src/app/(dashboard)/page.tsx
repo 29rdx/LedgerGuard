@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import type { AgGridReact } from 'ag-grid-react';
 import {
@@ -13,6 +14,7 @@ import {
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 import {
+  Play,
   ShieldAlert,
   CheckCircle2,
   Clock,
@@ -824,6 +826,14 @@ export default function TreasuryDashboardPage() {
             <Download className="w-3.5 h-3.5 text-sky-400" />
             <span>Export CSV</span>
           </button>
+
+          <Link
+            href="/demo-video"
+            className="btn-ice px-3.5 py-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.15)] flex items-center gap-1.5 transition-all"
+          >
+            <Play className="w-3.5 h-3.5 fill-emerald-400" />
+            <span>3-Min Demo Video</span>
+          </Link>
         </div>
       </div>
 
