@@ -1,9 +1,14 @@
+import path from 'path';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
   reactStrictMode: true,
+  turbopack: {
+    root: path.resolve(process.cwd()),
+  },
   headers: async () => {
     return [
       {

@@ -3,7 +3,15 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import type { AgGridReact } from 'ag-grid-react';
-import { ColDef, ICellRendererParams, SelectionChangedEvent } from 'ag-grid-community';
+import {
+  ColDef,
+  ICellRendererParams,
+  SelectionChangedEvent,
+  ModuleRegistry,
+  AllCommunityModule,
+} from 'ag-grid-community';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 import {
   ShieldAlert,
   CheckCircle2,
@@ -437,18 +445,6 @@ export default function TreasuryDashboardPage() {
   // AG Grid Column Definitions
   const columnDefs: ColDef<FinancialBlotterRow>[] = useMemo(
     () => [
-      {
-        headerName: '',
-        checkboxSelection: true,
-        headerCheckboxSelection: true,
-        width: 48,
-        pinned: 'left',
-        lockPosition: 'left',
-        suppressHeaderMenuButton: true,
-        resizable: false,
-        sortable: false,
-        filter: false,
-      },
       {
         headerName: 'PayPal Identifier',
         field: 'paypalOrderId',

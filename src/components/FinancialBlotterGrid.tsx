@@ -1,10 +1,20 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { ColDef, SelectionChangedEvent } from 'ag-grid-community';
+import {
+  ColDef,
+  SelectionChangedEvent,
+  ModuleRegistry,
+  AllCommunityModule,
+  ValidationModule,
+  RowSelectionOptions,
+} from 'ag-grid-community';
 import { FinancialBlotterRow } from '@/types';
 import { Coins } from 'lucide-react';
+
+// Register all AG Grid community modules (selection, pagination, filters, row models) and validation
+ModuleRegistry.registerModules([AllCommunityModule, ValidationModule]);
 
 export function BlotterSkeleton() {
   return (
@@ -46,6 +56,16 @@ export const FinancialBlotterGrid = memo(function FinancialBlotterGrid({
   onSelectionChanged,
   defaultColDef,
 }: FinancialBlotterGridProps) {
+  const rowSelection = useMemo<RowSelectionOptions<FinancialBlotterRow>>(
+    () => ({
+      mode: 'multiRow',
+      checkboxes: true,
+      headerCheckbox: true,
+      enableClickSelection: false,
+    }),
+    []
+  );
+
   return (
     <div className="liquid-glass rounded-2xl border border-white/20 dark:border-white/10 shadow-xl overflow-hidden specular-border">
       <div className="px-5 py-3.5 border-b border-white/10 dark:border-white/10 flex flex-wrap items-center justify-between gap-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
@@ -74,17 +94,19 @@ export const FinancialBlotterGrid = memo(function FinancialBlotterGrid({
 
       <div className="h-[520px] w-full ag-theme-alpine">
         <AgGridReact<FinancialBlotterRow>
+          theme="legacy"
           ref={gridRef}
           rowData={rowData}
           columnDefs={columnDefs}
           loading={loading}
           getRowId={(params) => params.data.id}
           defaultColDef={defaultColDef}
-          rowSelection="multiple"
+          rowSelection={rowSelection}
           onSelectionChanged={onSelectionChanged}
           animateRows={true}
           pagination={true}
           paginationPageSize={10}
+          paginationPageSizeSelector={[10, 25, 50, 100]}
         />
       </div>
     </div>
