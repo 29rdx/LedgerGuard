@@ -1,43 +1,103 @@
-# LedgerGuard — 3-Minute Video Demo Script (Solo Developer)
+# LedgerGuard — Official Demo Video & Submission Master Kit
 
-**Total Duration:** 2 minutes 50 seconds (Target: Strictly under the 3:00 Devpost limit)  
-**Host / Presenter:** Solo Developer & Lead Architect  
-**Visual Style:** Institutional, high-contrast desktop recording at 1080p/60fps. Zero fluff, brisk pacing, crisp clicks.
+> **Total Run Duration:** 2 minutes 35 seconds (Strictly under the 3:00 Devpost cutoff)  
+> **Target Voice Style:** Calm, confident, documentary-style fintech narration (ElevenLabs "Adam", "Brian", "Josh" at Stability 65%, Clarity 80%, or OpenAI TTS `alloy` / `onyx`).  
+> **Master Reference Audio:** Located at [`public/audio/voiceover-2m35s-master.m4a`](./public/audio/voiceover-2m35s-master.m4a) (Exact duration: 155.35s).
 
 ---
 
-## ⏱️ Second-by-Second Production Breakdown
+## 1. Direct Copy-Paste AI Voiceover Script (Natural Human Punctuation & Pauses)
 
-| Time Window | Screen Action / Visual Cue | Click / Keyboard Action | Spoken Audio Voiceover Script (Exact Words) |
+Paste the block below directly into your AI voice synthesis tool. Commas, dashes, and ellipses are tuned for natural respiration and pacing:
+
+```plaintext
+In modern B-to-B commerce... paying an invoice too early is a massive financial risk. Businesses lose billions every year to premature payouts, unverified contractor milestones, and manual invoice reconciliation. And while A.I. agents can now initiate payments... giving an autonomous agent direct access to company funds—without strict verification—is a recipe for disaster.
+
+Meet LedgerGuard... an institutional, agentic treasury and proof-of-delivery escrow terminal, built on the PayPal Developer Platform and A-G Grid.
+
+Instead of sending irreversible payouts immediately... LedgerGuard uses PayPal Orders V-2 to place funds into an Authorized Hold. The capital remains locked in PayPal Sandbox escrow until our autonomous A.I. Auditor verifies cryptographic proof of delivery.
+
+Let's walk through a live end-to-end transaction. 
+
+From the login portal, judges can click the Instant Sandbox Session button to provision an isolated treasury workspace—secured by HTTP-only JWT cookies, strict C-S-R-F verification, and role-based access control.
+
+Inside the main terminal, our financial blotter—powered by A-G Grid—tracks every active PayPal authorization, risk score, and settlement state in real time. 
+
+Pressing Command-K opens the Agentic Treasury Command Bar. Let's instruct the agent, in plain English, to create a one-thousand-four-hundred-and-fifty-dollar escrow hold for Vertex Semiconductor.
+
+Watch what happens behind the scenes. The agent invokes the PayPal Agent Toolkit... authenticates with PayPal's O-Auth-2 Sandbox API... and executes an Orders V-2 Authorize call. Within milliseconds, our Server-Sent Events stream catches the webhook and flashes the new row directly inside A-G Grid—with zero page reload.
+
+Now... suppose the vendor uploads their delivery manifest and invoice. Before releasing a single dollar, we click Run A.I. Audit. 
+
+First, our SSRF and magic-byte file guards validate the uploaded document. Next, the Treasury Auditor Agent cross-checks the line items against our organization's active Treasury Policy. If there is a discrepancy, a secondary Negotiator Agent flags the dispute automatically. 
+
+Here, the delivery proof passes every policy rule with a compliance score of ninety-six percent. 
+
+To release the funds, we trigger Step-Up Multi-Factor Authentication, enter our six-digit verification code, and execute the live PayPal Capture API. The held authorization is settled immediately in the PayPal Sandbox, and A-G Grid updates the ledger status to Captured.
+
+We can also ask the agent to filter the A-G Grid table dynamically—such as isolating all high-value holds over one thousand dollars—or generate a live PayPal Sandbox Invoice using the Invoicing V-2 API in seconds.
+
+Finally... institutional finance demands military-grade security. If we inspect the raw database, sensitive vendor records are encrypted at rest using A-E-S-256-G-C-M ciphertext. In the Audit Explorer, every single A.I. decision and PayPal API payload is chained together with SHA-256 hashes—making the ledger completely tamper-evident. And on our live Security Posture screen, we can run an automated twenty-point OWASP self-test across SQL injection, X-S-S, I-D-O-R, and webhook signature verification—passing twenty out of twenty checks live.
+
+LedgerGuard turns PayPal into a programmable, verifiable escrow engine for the agentic economy. Thank you for watching.
+```
+
+---
+
+## 2. Shot-by-Shot Screen Recording Sync Guide (2:35 Total)
+
+Record at 1920x1080 (60fps) in dark mode while playing the audio:
+
+| Timestamp | Audio Cue | Exact Screen Action to Perform | UI Focus Area |
 | :--- | :--- | :--- | :--- |
-| **0:00 - 0:12** | **Split-Screen Login Portal (`/login`)**.<br>Left panel shows clean white Inter login; right panel shows deep obsidian architectural mesh with animated SHA-256 hash chain blocks. | Mouse hovers over the emerald **"VP Treasury (Admin)"** 1-click judge button. | *"Welcome to LedgerGuard. In global B2B commerce, over $2.4 trillion is lost each year to premature vendor payouts and painful invoice disputes. LedgerGuard solves this with an autonomous AI Treasury Controller powered by PayPal Orders v2 authorize-and-hold escrow, AG Grid, and hardware-accelerated AES-256 encryption."* |
-| **0:12 - 0:30** | Click **"VP Treasury (Admin)"**.<br>Instant transition into the main **Treasury Blotter (`/`)** dashboard. Metric strip and high-density AG Grid table load with tabular monospace numerals. | Click **"VP Treasury (Admin)"**.<br>Scroll smoothly down the AG Grid table. | *"We begin at our split-screen portal. With one click, judges can provision an isolated sandbox session with pre-seeded data—zero typing required. Here is the Treasury Blotter, built on AG Grid React 36.2. Notice the monospace financial numerals and live risk scores. Every row represents an active PayPal authorization hold."* |
-| **0:30 - 0:52** | Press **Cmd+K** on macOS (or Ctrl+K). The Spotlight Command Palette floats into view. Type: `Authorize $1500 escrow for Cloudflare edge routing` and hit Enter. | Press `Cmd+K`.<br>Type prompt.<br>Press `Enter`. | *"Let's test agentic execution. I press Command-K to open our Spotlight Command Palette and instruct our AI Treasury Agent: 'Authorize $1,500 escrow for Cloudflare edge routing.' The agent interprets the intent, selects the contractor category, and calls PayPal Orders v2 with intent: AUTHORIZE."* |
-| **0:52 - 1:15** | Command Palette closes. The AG Grid table flashes green on the top row via Server-Sent Events (SSE). The new $1,500 Cloudflare escrow row appears in `AUTHORIZED_HOLD` state. | Click row to highlight.<br>Point cursor to live green cell flash and SSE indicator. | *"Watch the grid: without a page reload, our Server-Sent Events stream updates the blotter in real time, smoothly flashing the row cells green. The funds are now securely earmarked on PayPal's sandbox network under order authorization, awaiting cryptographic proof of delivery."* |
-| **1:15 - 1:38** | Click the **"Audit & Capture"** button on an active escrow hold. The Escrow Audit Modal opens, showing the contractor deliverable, SHA-256 hash matching, and AI Risk Score of 12/100. | Click **"Audit & Capture"** button.<br>Hover over Deliverable Proof and Risk Score (12/100). | *"Now, the contractor submits their deliverable. I open the Escrow Audit Modal. LedgerGuard's autonomous auditor runs binary magic-byte inspection, verifies the deliverable against our strict SSRF allowlist, and calculates a SHA-256 proof hash. Because the risk score is a safe 12 out of 100 and passes our Treasury Policy, it authorizes capture."* |
-| **1:38 - 2:00** | Click **"Confirm & Capture in PayPal Sandbox"**.<br>Step-Up MFA modal appears; click **"Auto-Fill Judge Code"** and submit.<br>Status flips to `CAPTURED` with PayPal Capture ID `CAP-...`. | Click **"Confirm & Capture"**.<br>Click **"Auto-Fill Judge Code"**.<br>Click **"Verify & Settle"**. | *"Because this disbursement exceeds our policy threshold, LedgerGuard triggers an RFC 6238 TOTP Step-Up MFA challenge. We click autofill and confirm. Instantly, funds are captured via the PayPal REST v2 API, updating the status to CAPTURED with a verifiable settlement receipt."* |
-| **2:00 - 2:15** | **The Cyber Security Flex:** Split screen to terminal or VS Code, run `sqlite3 prisma/dev.db "SELECT vendorEmail, deliverableSummary FROM LedgerTransaction LIMIT 1;"`. The output shows raw `enc_v1_...` ciphertext. | Show terminal with `sqlite3` query.<br>Highlight the `enc_v1_` AES-256-GCM ciphertext on disk. | *"Now, for the cybersecurity proof. Let's inspect the raw database on disk. Notice these fields: vendorEmail and deliverableSummary are completely unreadable. LedgerGuard implements field-level AES-256-GCM Application-Level Encryption with 96-bit IVs and 128-bit authentication tags before writing to disk."* |
-| **2:15 - 2:30** | Switch back to browser. Navigate to **Security Posture (`/security-audit`)**.<br>Show the live 20/20 Security Scorecard with all green checkmarks. | Click **"Security Posture"** in the sidebar navigation.<br>Scroll through the 20 passing controls. | *"Switching back to the terminal UI, we open our Security Posture Suite. LedgerGuard runs 20 automated live penetration probes across SSRF defenses, double-submit CSRF, parameter sanitization, and timing-safe comparisons—scoring a perfect 20 out of 20."* |
-| **2:30 - 2:50** | Navigate to **Audit Trail (`/audit-log`)**.<br>Click **"Verify Cryptographic Integrity"** button. The modal shows 100% mathematical integrity across all blocks. | Click **"Audit Trail"**.<br>Click **"Verify Cryptographic Integrity"**.<br>Show green modal: `All 18 blocks verified with 100% mathematical integrity`. | *"Finally, our Audit Trail. Every single agent decision, proof validation, and PayPal API call is mined into a SHA-256 Merkle hash chain. We click 'Verify Cryptographic Integrity': every block traverses back to the genesis block with 100% mathematical certainty. LedgerGuard brings institutional rigor, agentic autonomy, and cryptographic defense to PayPal commercial settlement. Thank you."* |
+| **0:00 – 0:22** | *"In modern B-to-B commerce... recipe for disaster."* | Start on `/login` split-screen portal. Show institutional aesthetic and security badges. | Hero title & security badge row |
+| **0:22 – 0:48** | *"Meet LedgerGuard... walk through a live end-to-end transaction."* | Click **"VP Treasury (Admin)"** / **"1-Click Judge Sandbox Login"**. Smooth transition into `/` Treasury Terminal. | 4 KPI summary cards & AG Grid blotter |
+| **0:48 – 1:18** | *"Pressing Command-K... flashes the new row directly inside AG Grid."* | Press `Cmd+K` or click **"Agent Drawer"**. Click prompt chip: *"Authorize $1,450.00 PayPal escrow hold..."*. Watch SSE live event flash new `AUTHORIZED_HOLD` row. | Agent drawer execution card & AG Grid green flash |
+| **1:18 – 1:52** | *"Now... suppose the vendor uploads... updates the ledger status to Captured."* | Click **Run AI Audit** on the Vertex Semiconductor row. Inspect delivery proof modal, click **Capture via PayPal**, enter 6-digit TOTP code, and watch status flip to `CAPTURED`. | Escrow Audit Modal, Step-Up MFA, & Row Status Tag |
+| **1:52 – 2:05** | *"We can also ask the agent to filter... Invoicing V-2 API in seconds."* | In Agent Drawer, click filter chip to isolate high-value escrows. Switch to `/invoices` to reveal generated PayPal `INV2-...` invoice. | AG Grid floating filter row & Invoicing Terminal |
+| **2:05 – 2:35** | *"Finally... institutional finance demands... Thank you for watching."* | Navigate to `/audit-log`, click **"Verify Hash Chain Integrity"** (green verified banner). Then open `/security-audit`, click **"Run Live 20-Point Security Self-Test"** to show **20/20 PASSED**. | SHA-256 Merkle chain modal & OWASP defense matrix |
 
 ---
 
-## 🎬 Recording Checklist & Pro-Tips for Solo Dev
+## 3. Prompt for AI Video Generator / Automated Editor
 
-1. **Window Setup:** Clean browser window open at `http://localhost:3000/login` in dark mode.
-2. **Pre-Seeded State:** Run `npm run db:reset` right before recording so the database is in a clean, perfect state with unbroken genesis blocks.
-3. **Cursor Pacing:** Move the cursor deliberately. Avoid erratic mouse wiggling.
-4. **Terminal Window:** Keep a split terminal window pre-typed with:
-   ```bash
-   sqlite3 prisma/dev.db "SELECT vendorEmail, deliverableSummary FROM LedgerTransaction LIMIT 1;"
-   ```
-   So switching to it takes exactly 2 seconds during the 2:00 mark.
-5. **Command Palette Shortcut:** Use `Cmd+K` (Mac) or click the spotlight search icon in the top header.
-6. **Timing Target:** 
-   - 0:00 - 0:30 (30s)
-   - 0:30 - 1:15 (45s)
-   - 1:15 - 2:00 (45s)
-   - 2:00 - 2:30 (30s)
-   - 2:30 - 2:50 (20s)
-   - **Total:** 2 minutes 50 seconds. Leaves a comfortable 10-second buffer under YouTube / Devpost's 3:00 hard ceiling.
+Use this prompt for automated video assembly tools, companion reels, or Antigravity video pipelines:
 
+```markdown
+Create a 2-minute 35-second technical product documentary walkthrough for "LedgerGuard" (PayPal AI Hackathon submission).
+- Visual Style: Institutional fintech documentary (Stripe / Linear / Bloomberg terminal aesthetic). Strictly monochrome slate, alabaster white, deep carbon, and emerald accents. Zero neon purple/violet gradients, zero stock footage of people in offices, and zero background music (strictly voiceover only to comply with Devpost copyright rules).
+- Pacing: 100% focused on live screen capture of the working software UI—specifically highlighting the Login Portal, the AG Grid Financial Blotter, the AI Treasury Command Drawer executing live PayPal Sandbox Orders v2 (Authorize & Capture) and Invoicing v2 calls, the SHA-256 Cryptographic Audit Log, and the 20/20 OWASP Security Verification Dashboard.
+- Captions: Render clean, high-contrast bottom subtitles in Inter Medium (`16px`) synchronized to the voiceover script.
+```
+
+---
+
+## 4. Ready-to-Send Submission & Judge Verification Email Template
+
+```plaintext
+Subject: PayPal AI Hackathon Submission — LedgerGuard (Agentic Treasury & Escrow Terminal)
+
+Hello PayPal AI Hackathon Judging Team,
+
+Please find the complete submission details for LedgerGuard—an institutional Agentic Treasury, Proof-of-Delivery Escrow, and Accounts-Payable Reconciliation Terminal built on the PayPal Developer Platform (Orders v2, Invoicing v2, Webhooks v1, and @paypal/agent-toolkit) and AG Grid.
+
+1. Live Production Application URL:
+[PASTE YOUR VERCEL / RENDER URL HERE]
+(Note: Click the "1-Click Judge Sandbox Session" button on the login screen for instant, zero-friction access to an isolated Treasury Admin workspace).
+
+2. Public GitHub Repository (MIT Licensed):
+[PASTE YOUR GITHUB REPO URL HERE]
+
+3. Official Demo Video (< 3 Minutes, Public YouTube):
+[PASTE YOUR YOUTUBE URL HERE]
+
+Key Architectural Highlights Verified in This Build:
+- PayPal Orders v2 Conditional Escrow: Places funds in AUTHORIZE hold and autonomously executes CAPTURE only after AI verification of delivery evidence.
+- PayPal Invoicing v2 & Real-Time Webhooks: Natural-language invoice generation and Server-Sent Events (SSE) streaming into AG Grid.
+- 20-Point OWASP & FinTech Security Architecture: Includes AES-256-GCM field-level encryption at rest, SHA-256 tamper-evident audit hash chaining, SSRF-guarded proof inspection, magic-byte file validation, CSRF double-submit cookies, and Step-Up TOTP MFA.
+
+Best regards,
+Rupraj Datta
+Software Engineer
+GitHub: https://github.com/29rdx
+```
