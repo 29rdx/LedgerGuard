@@ -27,8 +27,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
-      <body className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 dark:bg-[#07090E] dark:text-slate-100 selection:bg-blue-500/20 relative">
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
+      suppressHydrationWarning
+    >
+      <body
+        className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 dark:bg-[#07090E] dark:text-slate-100 selection:bg-blue-500/20 relative"
+        suppressHydrationWarning
+      >
         {/* Ambient Liquid Glass Floating Orbs */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
           <div className="absolute -top-[15%] -left-[10%] w-[55vw] h-[55vw] rounded-full bg-gradient-to-br from-blue-600/20 via-cyan-500/15 to-transparent blur-[120px] animate-liquid-orb-1" />
