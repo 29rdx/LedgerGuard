@@ -77,7 +77,7 @@ export function getMockOrderCreation(params: {
     orderId,
     authId,
     status: 'AUTHORIZED_HOLD',
-    approvalLink: `https://www.sandbox.paypal.com/checkoutnow?token=${orderId}`,
+    approvalLink: `/sandbox-checkout?orderId=${orderId}&amount=${amountStr}&currency=${currency}&vendor=${encodeURIComponent(params.vendorName)}`,
     rawResponse: JSON.stringify({
       id: orderId,
       status: 'APPROVED',

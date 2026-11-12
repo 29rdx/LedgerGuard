@@ -260,7 +260,7 @@ export class PayPalSandboxClient {
     // High-fidelity sandbox response
     const mockOrderId = `ORD-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
     const mockAuthId = `AUTH-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
-    const mockApproval = `https://www.sandbox.paypal.com/checkoutnow?token=${mockOrderId}`;
+    const mockApproval = `/sandbox-checkout?orderId=${mockOrderId}&amount=${amountVal}&currency=${currency}&vendor=${encodeURIComponent(params.vendorName)}`;
     const mockRaw = JSON.stringify({
       id: mockOrderId,
       status: 'APPROVED',

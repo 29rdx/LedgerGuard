@@ -67,7 +67,8 @@ export async function middleware(request: NextRequest) {
     .trim();
 
   // 4. Public unauthenticated paths
-  const isPublicPage = pathname === '/login';
+  const isGuestOnlyPage = pathname === '/login';
+  const isPublicPage = pathname === '/login' || pathname === '/sandbox-checkout';
   const isPublicApi =
     pathname.startsWith('/api/auth/login') ||
     pathname.startsWith('/api/auth/magic-link') ||
@@ -99,7 +100,8 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith('/api/auth/magic-link') &&
     pathname !== '/api/auth/logout' &&
     pathname !== '/api/paypal/webhooks' && // PayPal webhooks authenticate via transmission headers
-    pathname !== '/api/automation/audit-cron' // Cron automation authenticates via CRON_SECRET Bearer token
+    pathname !== '/api/automation/audit-cron' && // Cron automation authenticates via CRON_SECRET Bearer token
+    !pathname.includes('/simulate-approval') // Simulated sandbox buyer approval execution
   ) {
     const csrfCookie = request.cookies.get(CSRF_COOKIE_NAME)?.value;
     const csrfHeader = request.headers.get('x-csrf-token');
@@ -144,7 +146,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // If already logged in and visiting /login, redirect to /
-  if (verifiedPayload && isPublicPage) {
+  if (verifiedPayload && isGuestOnlyPage) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

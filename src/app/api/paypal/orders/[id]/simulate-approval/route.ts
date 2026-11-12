@@ -18,16 +18,21 @@ export async function POST(
   const { id } = await params;
   const tenantDb = getTenantDb(session.organizationId);
 
-  const tx = await tenantDb.transactions.findUnique(id);
+  let tx = await tenantDb.transactions.findUnique(id);
   if (!tx) {
-    return NextResponse.json({ error: 'NotFound', message: 'Transaction not found' }, { status: 404 });
+    tx = await tenantDb.transactions.findFirst({
+      where: { paypalOrderId: id },
+    });
+  }
+  if (!tx) {
+    return NextResponse.json({ error: 'NotFound', message: `Transaction with ID '${id}' not found` }, { status: 404 });
   }
 
   const mockCaptureId = tx.paypalCaptureId || `CAP-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
 
   // Update transaction status to CAPTURED
   const updated = await tenantDb.transactions.update({
-    where: { id },
+    where: { id: tx.id },
     data: {
       status: 'CAPTURED',
       paypalCaptureId: mockCaptureId,
@@ -53,7 +58,7 @@ export async function POST(
   await tenantDb.auditLogs.create({
     actor,
     action,
-    targetId: id,
+    targetId: tx.id,
     paypalEndpoint: '/v2/checkout/orders',
     httpStatus: 200,
     redactedDetails: details,

@@ -318,17 +318,37 @@ export function AgenticTreasuryDrawer({
                               </div>
                             )}
 
-                            {/* PayPal Sandbox Approve Link */}
+                            {/* PayPal Sandbox Approve Link & Instant Settle Action */}
                             {Boolean(output.approvalLink) && (
-                              <a
-                                href={String(output.approvalLink)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="mt-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/30 text-sky-200 text-xs font-medium transition-all"
-                              >
-                                <span>Complete PayPal Sandbox Approval</span>
-                                <ExternalLink className="w-3 h-3 text-sky-300" />
-                              </a>
+                              <div className="flex items-center gap-2 mt-1 pt-1 border-t border-sky-400/20">
+                                <a
+                                  href={String(output.approvalLink)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-medium transition-all"
+                                >
+                                  <span>Complete Sandbox Approval</span>
+                                  <ExternalLink className="w-3 h-3 text-amber-300" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const oid = output.paypalOrderId || output.orderId;
+                                    if (oid) {
+                                      try {
+                                        await fetch(`/api/paypal/orders/${encodeURIComponent(String(oid))}/simulate-approval`, { method: 'POST' });
+                                        handleSendPrompt(`Audit all AUTHORIZED_HOLD escrows and execute PayPal Capture for order ${oid}`);
+                                      } catch (err) {
+                                        console.error('Simulate approval failed', err);
+                                      }
+                                    }
+                                  }}
+                                  className="py-2 px-2.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/30 text-sky-200 text-xs font-mono font-medium transition-all cursor-pointer shrink-0"
+                                  title="1-Click Instant Sandbox Settle"
+                                >
+                                  ⚡ 1-Click Settle
+                                </button>
+                              </div>
                             )}
                           </div>
                         );

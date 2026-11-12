@@ -30,3 +30,4 @@ if (isPostgres) {
     fs.copyFileSync(schemaSqlite, schemaTarget);
   }
 }
+

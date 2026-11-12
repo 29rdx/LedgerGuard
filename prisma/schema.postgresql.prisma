@@ -99,3 +99,4 @@ model AuditLog {
   @@index([organizationId])
   @@index([recordHash])
 }
+

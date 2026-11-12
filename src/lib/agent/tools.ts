@@ -108,8 +108,11 @@ export async function executeCreatePaypalEscrow(
   }
 
   const approvalLink =
-    orderResponse.approvalLink ||
-    `https://www.sandbox.paypal.com/checkoutnow?token=${orderResponse.orderId}`;
+    paypalClient.hasLiveCredentials() &&
+    orderResponse.approvalLink &&
+    !orderResponse.approvalLink.includes('token=ORD-')
+      ? orderResponse.approvalLink
+      : `/sandbox-checkout?orderId=${orderResponse.orderId}&amount=${input.amount.toFixed(2)}&currency=${input.currency}&vendor=${encodeURIComponent(input.vendorName)}`;
 
   // 3. Persist encrypted record in database
   const tenantDb = getTenantDb(organizationId);
