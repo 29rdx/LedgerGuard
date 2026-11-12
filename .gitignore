@@ -43,6 +43,7 @@ next-env.d.ts
 # sqlite
 *.db
 *.db-journal
+scratch/
 
 # allow env.example
 !.env.example
