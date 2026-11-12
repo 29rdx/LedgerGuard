@@ -64,7 +64,7 @@ export async function middleware(request: NextRequest) {
     img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com https://avatars.githubusercontent.com;
     font-src 'self' data:;
     media-src 'self' data:;
-    connect-src 'self' https://api-m.sandbox.paypal.com https://api-m.paypal.com https://api.openai.com;
+    connect-src 'self' https://api-m.sandbox.paypal.com https://api-m.paypal.com https://api.openai.com https://api.groq.com https://*.neon.tech;
     frame-ancestors 'none';
     form-action 'self';
     base-uri 'self';

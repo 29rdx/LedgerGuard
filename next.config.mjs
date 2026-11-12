@@ -2,7 +2,7 @@ import path from 'path';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
   reactStrictMode: true,

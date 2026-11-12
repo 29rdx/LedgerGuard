@@ -12,6 +12,23 @@ const schemaTarget = path.join(root, 'prisma', 'schema.prisma');
 const schemaPg = path.join(root, 'prisma', 'schema.postgresql.prisma');
 const schemaSqlite = path.join(root, 'prisma', 'schema.sqlite.prisma');
 
+// Parse .env.local or .env if present
+for (const envFile of ['.env.local', '.env']) {
+  const envPath = path.join(root, envFile);
+  if (fs.existsSync(envPath)) {
+    const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+    for (const line of lines) {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let val = match[2] || '';
+        if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+        if (!process.env[key]) process.env[key] = val;
+      }
+    }
+  }
+}
+
 const isPostgres = Boolean(
   process.env.POSTGRES_PRISMA_URL ||
   process.env.POSTGRES_URL ||

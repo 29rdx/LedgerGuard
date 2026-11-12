@@ -17,10 +17,10 @@ import { agentEngine } from '@/lib/agent-engine';
 
 export const maxDuration = 60;
 
-// Cache OpenAI key verification result for 60 seconds
+// Cache LLM key verification result for 60 seconds
 let cachedKeyStatus: { key: string; valid: boolean; checkedAt: number } | null = null;
 
-async function isLiveOpenAiAvailable(apiKey?: string): Promise<boolean> {
+async function isLiveLlmAvailable(apiKey?: string, baseURL?: string): Promise<boolean> {
   if (!apiKey || apiKey.length < 20 || apiKey.includes('***')) return false;
 
   const now = Date.now();
@@ -29,15 +29,16 @@ async function isLiveOpenAiAvailable(apiKey?: string): Promise<boolean> {
   }
 
   try {
-    const res = await fetch('https://api.openai.com/v1/models', {
+    const url = baseURL ? `${baseURL}/models` : 'https://api.openai.com/v1/models';
+    const res = await fetch(url, {
       headers: { Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(2500),
+      signal: AbortSignal.timeout(3000),
     });
 
     const valid = res.status === 200;
     cachedKeyStatus = { key: apiKey, valid, checkedAt: now };
     if (!valid) {
-      secureLogger.warn(`[OpenAI Preflight] API key returned HTTP ${res.status}. Switching to Deterministic Engine.`);
+      secureLogger.warn(`[LLM Preflight] API key returned HTTP ${res.status}. Switching to Deterministic Engine.`);
     }
     return valid;
   } catch {
@@ -87,15 +88,24 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. High-Availability LLM Provider Execution
-    const apiKey = process.env.OPENAI_API_KEY?.trim();
-    const isCircuitOpen = aiCircuitBreaker.getState() === 'OPEN';
-    const canUseLiveLlm = await isLiveOpenAiAvailable(apiKey);
+    // 2. High-Availability LLM Provider Execution (Groq or OpenAI with Auto-Detection)
+    const isGroq = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 10);
+    const baseURL = isGroq ? 'https://api.groq.com/openai/v1' : undefined;
+    const apiKey = (isGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY)?.trim();
+    const modelName = isGroq
+      ? (process.env.GROQ_MODEL || 'openai/gpt-oss-20b')
+      : (process.env.OPENAI_MODEL || 'gpt-4o-mini');
 
-    if (canUseLiveLlm && !isCircuitOpen) {
+    const isCircuitOpen = aiCircuitBreaker.getState() === 'OPEN';
+    const canUseLiveLlm = await isLiveLlmAvailable(apiKey, baseURL);
+
+    if (canUseLiveLlm && !isCircuitOpen && apiKey) {
       try {
-        const openai = createOpenAI({ apiKey });
-        const model = openai(process.env.OPENAI_MODEL || 'gpt-4o-mini');
+        const openai = createOpenAI({
+          apiKey,
+          baseURL,
+        });
+        const model = openai(modelName);
         const modelMessages = await convertToModelMessages(messages);
 
         const result = streamText({
@@ -107,7 +117,7 @@ export async function POST(req: Request) {
 
         return result.toUIMessageStreamResponse();
       } catch (llmErr) {
-        secureLogger.warn('OpenAI streamText threw an error, engaging deterministic fallback stream', {
+        secureLogger.warn('LLM streamText threw an error, engaging deterministic fallback stream', {
           error: String(llmErr),
         });
       }
