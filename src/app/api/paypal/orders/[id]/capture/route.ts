@@ -6,6 +6,7 @@ import { paypalClient } from '@/lib/paypal-client';
 import { verifyTotp } from '@/lib/mfa';
 import { computeBlockHash } from '@/lib/crypto-audit';
 import { secureLogger } from '@/lib/secure-logger';
+import { sseBroadcaster } from '@/lib/sse-broadcaster';
 
 const CaptureSchema = z.object({
   mfaToken: z.string().optional(),
@@ -127,6 +128,15 @@ export async function POST(
       previousHash: prevHash,
       recordHash,
       timestamp: new Date(timestamp),
+    });
+
+    sseBroadcaster.broadcast({
+      type: 'TRANSACTION_UPDATED',
+      transaction: updated,
+      event: 'PAYMENT.CAPTURE.COMPLETED',
+      orderId: transaction.paypalOrderId,
+      timestamp: new Date().toISOString(),
+      details: `Disbursement captured via PayPal v2 rail (${captureResult.captureId}).`,
     });
 
     return NextResponse.json({

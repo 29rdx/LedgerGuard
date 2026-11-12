@@ -4,6 +4,8 @@ import { validateSsrfUrl } from '@/lib/ssrf-guard';
 import { prisma } from '@/lib/db';
 import { computeBlockHash } from '@/lib/crypto-audit';
 import { secureLogger } from '@/lib/secure-logger';
+import { sseBroadcaster } from '@/lib/sse-broadcaster';
+import { decryptTransactionRecord } from '@/lib/encryption';
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,56 +57,89 @@ export async function POST(request: NextRequest) {
 
     secureLogger.info('PayPal Webhook Authenticated and Processed', { eventType, orderId });
 
+    let updatedTxRecord = null;
+
     if (orderId && typeof orderId === 'string') {
       const tx = await prisma.ledgerTransaction.findFirst({
         where: {
-          OR: [{ paypalOrderId: orderId }, { paypalAuthId: orderId }, { paypalCaptureId: orderId }],
+          OR: [
+            { paypalOrderId: orderId },
+            { paypalAuthId: orderId },
+            { paypalCaptureId: orderId },
+            { paypalInvoiceId: orderId },
+          ],
         },
       });
 
       if (tx) {
         let newStatus = tx.status;
-        if (eventType === 'PAYMENT.CAPTURE.COMPLETED') newStatus = 'CAPTURED';
-        if (eventType === 'PAYMENT.CAPTURE.REFUNDED') newStatus = 'REFUNDED';
-        if (eventType === 'PAYMENT.AUTHORIZATION.VOIDED') newStatus = 'REFUNDED';
-
-        if (newStatus !== tx.status) {
-          await prisma.ledgerTransaction.update({
-            where: { id: tx.id },
-            data: { status: newStatus },
-          });
-
-          // Cryptographic Hash Chain Audit
-          const lastAudit = await prisma.auditLog.findFirst({
-            where: { organizationId: tx.organizationId },
-            orderBy: { timestamp: 'desc' },
-          });
-          const prevHash = lastAudit?.recordHash || '0000000000000000000000000000000000000000000000000000000000000000';
-          const timestamp = new Date().toISOString();
-          const actor = 'PAYPAL_WEBHOOK';
-          const action = `WEBHOOK_${eventType.replace(/\./g, '_')}`;
-          const details = JSON.stringify({ eventType, orderId, transmissionId });
-          const recordHash = computeBlockHash(prevHash, timestamp, actor, action, details);
-
-          await prisma.auditLog.create({
-            data: {
-              organizationId: tx.organizationId,
-              timestamp: new Date(timestamp),
-              actor,
-              action,
-              targetId: tx.id,
-              paypalEndpoint: '/v1/notifications/verify-webhook-signature',
-              httpStatus: 200,
-              redactedDetails: details,
-              previousHash: prevHash,
-              recordHash,
-            },
-          });
+        if (eventType === 'PAYMENT.CAPTURE.COMPLETED' || eventType === 'INVOICING.INVOICE.PAID') {
+          newStatus = 'CAPTURED';
+        } else if (eventType === 'PAYMENT.CAPTURE.DENIED') {
+          newStatus = 'FLAGGED_DISPUTE';
+        } else if (eventType === 'PAYMENT.CAPTURE.REFUNDED' || eventType === 'PAYMENT.AUTHORIZATION.VOIDED') {
+          newStatus = 'REFUNDED';
+        } else if (eventType === 'PAYMENT.AUTHORIZATION.CREATED') {
+          newStatus = 'AUTHORIZED_HOLD';
         }
+
+        const rawUpdated = await prisma.ledgerTransaction.update({
+          where: { id: tx.id },
+          data: {
+            status: newStatus,
+            aiAuditVerdict: newStatus === 'CAPTURED' ? 'APPROVED' : newStatus === 'FLAGGED_DISPUTE' ? 'FLAGGED' : tx.aiAuditVerdict,
+            aiAuditReasoning: `Updated via authenticated PayPal webhook event: ${eventType}.`,
+          },
+        });
+
+        updatedTxRecord = decryptTransactionRecord(rawUpdated);
+
+        // Cryptographic Hash Chain Audit
+        const lastAudit = await prisma.auditLog.findFirst({
+          where: { organizationId: tx.organizationId },
+          orderBy: { timestamp: 'desc' },
+        });
+        const prevHash = lastAudit?.recordHash || '0000000000000000000000000000000000000000000000000000000000000000';
+        const timestamp = new Date().toISOString();
+        const actor = 'PAYPAL_WEBHOOK';
+        const action = `WEBHOOK_${eventType.replace(/\./g, '_')}`;
+        const details = JSON.stringify({ eventType, orderId, transmissionId, newStatus });
+        const recordHash = computeBlockHash(prevHash, timestamp, actor, action, details);
+
+        await prisma.auditLog.create({
+          data: {
+            organizationId: tx.organizationId,
+            timestamp: new Date(timestamp),
+            actor,
+            action,
+            targetId: tx.id,
+            paypalEndpoint: '/v1/notifications/verify-webhook-signature',
+            httpStatus: 200,
+            redactedDetails: details,
+            previousHash: prevHash,
+            recordHash,
+          },
+        });
+
+        // 3. Broadcast real-time update to all connected dashboard SSE subscribers
+        sseBroadcaster.broadcast({
+          type: 'TRANSACTION_UPDATED',
+          transaction: updatedTxRecord,
+          event: eventType,
+          orderId: tx.paypalOrderId,
+          timestamp: new Date().toISOString(),
+          details: `Webhook ${eventType} verified. Status changed to ${newStatus}.`,
+        });
       }
     }
 
-    return NextResponse.json({ received: true, verified: true, eventType });
+    return NextResponse.json({
+      received: true,
+      verified: true,
+      eventType,
+      broadcasted: Boolean(updatedTxRecord),
+      transaction: updatedTxRecord,
+    });
   } catch (error) {
     secureLogger.error('Webhook processing error', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

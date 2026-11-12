@@ -1,4 +1,8 @@
 import { PrismaClient, Prisma } from '@prisma/client';
+import {
+  encryptTransactionPayload,
+  decryptTransactionRecord,
+} from './encryption';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
@@ -12,7 +16,8 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 /**
  * Tenant-Scoped Database Wrapper for Strict Row-Level Multi-Tenant Isolation
- * Automatically bounds all read and write queries to the authenticated organizationId.
+ * Automatically bounds all read and write queries to the authenticated organizationId
+ * and executes Application-Level Encryption (AES-256-GCM) on sensitive PII fields.
  */
 export function getTenantDb(organizationId: string) {
   if (!organizationId || typeof organizationId !== 'string') {
@@ -22,36 +27,41 @@ export function getTenantDb(organizationId: string) {
   return {
     raw: prisma,
     transactions: {
-      findMany: (args?: Parameters<typeof prisma.ledgerTransaction.findMany>[0]) => {
-        return prisma.ledgerTransaction.findMany({
+      findMany: async (args?: Parameters<typeof prisma.ledgerTransaction.findMany>[0]) => {
+        const items = await prisma.ledgerTransaction.findMany({
           ...args,
           where: {
             ...args?.where,
             organizationId,
           },
         });
+        return items.map(decryptTransactionRecord);
       },
       findUnique: async (id: string) => {
         const item = await prisma.ledgerTransaction.findUnique({ where: { id } });
         if (!item || item.organizationId !== organizationId) return null;
-        return item;
+        return decryptTransactionRecord(item);
       },
-      findFirst: (args?: Parameters<typeof prisma.ledgerTransaction.findFirst>[0]) => {
-        return prisma.ledgerTransaction.findFirst({
+      findFirst: async (args?: Parameters<typeof prisma.ledgerTransaction.findFirst>[0]) => {
+        const item = await prisma.ledgerTransaction.findFirst({
           ...args,
           where: {
             ...args?.where,
             organizationId,
           },
         });
+        if (!item || item.organizationId !== organizationId) return null;
+        return decryptTransactionRecord(item);
       },
-      create: (args: { data: Omit<Prisma.LedgerTransactionUncheckedCreateInput, 'organizationId'> }) => {
-        return prisma.ledgerTransaction.create({
+      create: async (args: { data: Omit<Prisma.LedgerTransactionUncheckedCreateInput, 'organizationId'> }) => {
+        const encryptedData = encryptTransactionPayload(args.data);
+        const record = await prisma.ledgerTransaction.create({
           data: {
-            ...args.data,
+            ...encryptedData,
             organizationId,
           },
         });
+        return decryptTransactionRecord(record);
       },
       update: async (args: Parameters<typeof prisma.ledgerTransaction.update>[0]) => {
         const existing = await prisma.ledgerTransaction.findUnique({
@@ -61,7 +71,13 @@ export function getTenantDb(organizationId: string) {
         if (!existing || existing.organizationId !== organizationId) {
           throw new Error('SecurityViolation: Unauthorized attempt to mutate cross-tenant transaction');
         }
-        return prisma.ledgerTransaction.update(args);
+
+        const encryptedData = args.data ? encryptTransactionPayload(args.data as Record<string, any>) : args.data;
+        const updated = await prisma.ledgerTransaction.update({
+          ...args,
+          data: encryptedData,
+        });
+        return decryptTransactionRecord(updated);
       },
       delete: async (args: Parameters<typeof prisma.ledgerTransaction.delete>[0]) => {
         const existing = await prisma.ledgerTransaction.findUnique({

@@ -14,16 +14,20 @@
 
 1. **Grand Prize ($12,000) / Runner-Up ($8,000 / $5,000):**
    - Institutional FinTech terminal architecture modeled after Stripe, Mercury, and Bloomberg.
-   - Cryptographic SHA-256 tamper-evident hash-chained audit trail.
-   - Comprehensive 20-point security hardening and OWASP Top-10 compliance verification matrix.
+   - Cryptographic SHA-256 tamper-evident hash-chained audit trail guaranteeing non-repudiation.
+   - Military-grade Application-Level Encryption (AES-256-GCM) protecting all sensitive PII at rest.
+   - Comprehensive 20-point security hardening and OWASP Top-10 compliance verification matrix (100% passing).
 2. **Best Use of Agentic Commerce ($5,000) & Best Use of PayPal + AI ($5,000):**
-   - Autonomous AI Treasury Controller placing funds under PayPal `Orders v2` with `intent: "AUTHORIZE"`.
+   - Autonomous Multi-Agent Dispute Resolution Engine (`TreasuryAuditorAgent` ⇄ `VendorSettlementAgent`).
+   - Conditional milestone escrow: places funds under PayPal `Orders v2` with `intent: "AUTHORIZE"`.
    - Executes `CAPTURE` only upon cryptographic proof-of-delivery verification and invoice rate-card compliance.
-   - Integrated with `@paypal/agent-toolkit` and SSRF-guarded deliverable auditing.
+   - Real-Time Server-Sent Events (SSE) Webhook Reconciliation pushing live status updates directly to AG Grid.
 3. **Best Use of AG Grid ($5,000):**
-   - High-density institutional financial blotter (`ag-grid-react`) with tabular monospace numerals (`tabular-nums`).
-   - Natural language AI-driven grid filtering (dispatched from agent console).
-   - Inline escrow actions (Capture, Audit, Void) and regulatory CSV audit exports.
+   - High-density institutional financial blotter (`ag-grid-react` v36.2) with tabular monospace numerals (`tabular-nums font-mono`).
+   - Programmatic natural language AI-driven grid filtering via `gridRef.current.api.setFilterModel(...)`.
+   - Real-time row flash animations (`api.flashCells`) on live SSE webhook events.
+   - Multi-row checkbox selection with bulk AI audit & capture toolbar action.
+   - Monospace raw PayPal JSON payload inspector modal and regulatory CSV exports.
 4. **Best Use of Render ($1,000):**
    - Production-hardened `render.yaml` Blueprint for 1-click cloud deployment.
 

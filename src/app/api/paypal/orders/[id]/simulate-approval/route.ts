@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getTenantDb } from '@/lib/db';
 import { computeBlockHash } from '@/lib/crypto-audit';
 import { secureLogger } from '@/lib/secure-logger';
+import { sseBroadcaster } from '@/lib/sse-broadcaster';
 import crypto from 'crypto';
 
 export async function POST(
@@ -62,6 +63,15 @@ export async function POST(
   });
 
   secureLogger.info('Simulated Sandbox Buyer Approval & Settle Executed', { orderId: tx.paypalOrderId });
+
+  sseBroadcaster.broadcast({
+    type: 'TRANSACTION_UPDATED',
+    transaction: updated,
+    event: 'PAYMENT.CAPTURE.COMPLETED',
+    orderId: tx.paypalOrderId,
+    timestamp: new Date().toISOString(),
+    details: `Simulated Sandbox Buyer Approval & Settlement completed for order ${tx.paypalOrderId}.`,
+  });
 
   return NextResponse.json({
     success: true,

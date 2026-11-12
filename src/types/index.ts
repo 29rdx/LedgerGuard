@@ -222,3 +222,32 @@ export interface AgentActionDirective {
   confidence: number;
   recommendedNextStep?: string;
 }
+
+export interface AgentDialogueMessage {
+  sender: 'TREASURY_AUDITOR_AGENT' | 'VENDOR_SETTLEMENT_AGENT';
+  senderTitle: string;
+  avatar: string;
+  timestamp: string;
+  message: string;
+  evidenceType?: 'RATE_CARD' | 'SHA256_DIGEST' | 'MILESTONE_CERT' | 'CREDIT_MEMO';
+  evidenceValue?: string;
+}
+
+export interface DisputeNegotiationResult {
+  transactionId: string;
+  orderId: string;
+  vendorName: string;
+  initialRiskScore: number;
+  finalRiskScore: number;
+  consensusReached: boolean;
+  settlementAuthorized: boolean;
+  revisedHash: string;
+  dialogue: AgentDialogueMessage[];
+  settlementTerms: {
+    originalAmount: number;
+    agreedAmount: number;
+    varianceExplained: string;
+    paypalCaptureId?: string;
+  };
+}
+

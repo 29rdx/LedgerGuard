@@ -19,9 +19,11 @@ import {
   Key,
   UserCheck,
   UserCog,
+  Search,
 } from 'lucide-react';
 import { UserSession } from '@/types';
 import { JUDGE_PROMPT_CHIPS } from '@/lib/agent-engine';
+import { CommandPalette } from '@/components/CommandPalette';
 
 export default function DashboardLayout({
   children,
@@ -41,6 +43,7 @@ export default function DashboardLayout({
 
   // AI Drawer State
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [switchingRole, setSwitchingRole] = useState(false);
@@ -84,6 +87,16 @@ export default function DashboardLayout({
   useEffect(() => {
     fetchSession();
     fetchPayPalStatus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleLogout = async () => {
@@ -308,16 +321,36 @@ export default function DashboardLayout({
             )}
           </div>
 
-          <button
-            onClick={() => setIsAiDrawerOpen(!isAiDrawerOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors shadow-xs"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-            <span>Agent Drawer</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-mono rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs"
+              title="Open Spotlight Command Palette (Cmd+K)"
+            >
+              <Search className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Search & Actions</span>
+              <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-semibold text-slate-500">
+                ⌘K
+              </span>
+            </button>
+
+            <button
+              onClick={() => setIsAiDrawerOpen(!isAiDrawerOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors shadow-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              <span>Agent Drawer</span>
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
+
+        {/* Global Spotlight Command Palette (Cmd+K) */}
+        <CommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
+        />
       </div>
 
       {/* 3. Dockable AI Treasury Drawer */}

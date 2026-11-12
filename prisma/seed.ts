@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { encryptTransactionPayload } from '../src/lib/encryption';
 
 const prisma = new PrismaClient();
 
@@ -344,7 +345,8 @@ async function main() {
   ];
 
   for (const tx of transactions) {
-    await prisma.ledgerTransaction.create({ data: tx });
+    const encrypted = encryptTransactionPayload(tx);
+    await prisma.ledgerTransaction.create({ data: encrypted });
   }
 
   // 5. Cryptographic Audit Trail Hash Chain

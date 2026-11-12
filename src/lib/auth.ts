@@ -86,16 +86,28 @@ export function generateCsrfToken(): string {
 }
 
 /**
+ * Constant-time string comparison preventing timing side-channel attacks
+ */
+export function constantTimeCompare(a: string, b: string): boolean {
+  try {
+    const bufA = Buffer.from(a);
+    const bufB = Buffer.from(b);
+    if (bufA.length !== bufB.length) {
+      crypto.timingSafeEqual(bufA, bufA);
+      return false;
+    }
+    return crypto.timingSafeEqual(bufA, bufB);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Validates double-submit CSRF token against header and cookie
  */
 export function validateCsrfToken(cookieToken: string | undefined, headerToken: string | null): boolean {
   if (!cookieToken || !headerToken) return false;
-  if (cookieToken.length !== 64 || headerToken.length !== 64) return false;
-  try {
-    return crypto.timingSafeEqual(Buffer.from(cookieToken), Buffer.from(headerToken));
-  } catch {
-    return false;
-  }
+  return constantTimeCompare(cookieToken, headerToken);
 }
 
 /**

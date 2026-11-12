@@ -59,25 +59,44 @@ LedgerGuard is an institutional treasury operating system that combines autonomo
 - **Binary Magic Bytes:** Validates `%PDF-`, `\x89PNG`, and JSON schemas before processing.
 - Computes SHA-256 hash digests and verifies them against the original contract attestation.
 
-### 3. High-Density Financial Blotter (AG Grid React v36.2)
+### 3. High-Density Financial Blotter (AG Grid React v36.2) & Real-Time SSE Stream
 - High-performance tabular data grid displaying real-time escrow authorizations, risk scores, settlement statuses, and counterparty metadata.
+- **Server-Sent Events (SSE) Live Reconciliation:** Subscribed to `/api/ledger/stream`; when PayPal webhooks or settlements occur, the grid immediately invokes `gridApi.applyTransaction({ update: [updatedRecord] })` and flashes the row cells green (`#ECFDF5`) with zero page reloads.
 - **Multi-Row Selection:** Checkbox selection allowing finance teams to select multiple holds at once.
 - **Bulk AI Audit:** 1-click toolbar action that iterates through selected rows, evaluates deliverable proofs, and batch-captures approved disbursements.
-- **Natural Language Grid Control:** Commands typed into the AI Treasury Drawer directly call `gridRef.current.api.setFilterModel(...)` to filter and sort the grid on screen.
+- **Natural Language Grid Control & Cmd+K Palette:** Global Spotlight Command Palette (Cmd+K / Ctrl+K) directly executes natural language commands and calls `gridRef.current.api.setFilterModel(...)` to filter and sort the grid on screen.
 - **Raw PayPal JSON Inspector:** Monospace payload viewer allowing auditors to inspect authentic PayPal Orders v2 and Invoicing v2 responses with 1-click copy.
 - **CSV Audit Export:** One-click compliance export for regulatory reporting.
 
-### 4. Accounts-Payable Invoicing v2 & Reconciler
-- Direct integration with PayPal Invoicing v2 (`POST /v2/invoicing/invoices`).
-- Generates institutional drafts (`INV-2026-...`), validates line-item rate cards, and maintains synchronized ledger entries.
+### 4. Multi-Agent Dispute Resolution Engine (True Agentic Commerce)
+- If an escrow deliverable is flagged for variance (`FLAGGED_DISPUTE`), LedgerGuard spins up an autonomous **Multi-Agent Negotiation System**:
+  - **Treasury Auditor Agent (Agent-01):** Corporate compliance controller enforcing corporate policy thresholds.
+  - **Vendor Settlement Agent:** Counterparty representative providing deliverable telemetry, corrected rate cards, and revised cryptographic SHA-256 digests.
+- The agents conduct an automated 3-round dispute resolution dialogue. When consensus is achieved, the Treasury Agent automatically adjusts the invoice, verifies the revised digest, reduces the risk score (e.g. 89 -> 12), and captures funds via PayPal.
+- Full transcript rendered in the UI inside the **Multi-Agent Dispute Resolution Dossier**.
 
-### 5. Cryptographic SHA-256 Tamper-Evident Audit Trail
-- Every transaction authorization, AI audit verdict, step-up MFA verification, and PayPal webhook event is mined into a sequential cryptographic block.
+### 5. Military-Grade Application-Level Encryption (AES-256-GCM ALE)
+- Beyond traditional disk encryption, LedgerGuard implements field-level cryptographic protection (ALE) on sensitive PII:
+  - `vendorEmail`, `deliverableSummary`, and `rawPaypalResponse` are encrypted using authenticated `aes-256-gcm` before insertion into SQLite.
+  - In the raw `dev.db` database file on disk, these fields appear as undecipherable ciphertext: `enc_v1_<iv>:<tag>:<ciphertext>`.
+  - Transparently decrypted on the fly by authorized tenant database wrappers.
+
+### 6. Cryptographic SHA-256 Tamper-Evident Audit Trail
+- Every transaction authorization, AI audit verdict, step-up MFA verification, multi-agent negotiation, and PayPal webhook event is mined into a sequential cryptographic block.
 - Each block contains: `previousHash`, `timestampIso`, `actor`, `action`, `details`, and `recordHash` (`SHA-256`).
 - Includes a live **"Verify Cryptographic Integrity"** auditor that traverses the entire blockchain-style ledger to guarantee zero tampering, backdating, or deletions.
 
-### 6. Institutional Security & Compliance Matrix (20/20 Controls Passing)
+### 7. Institutional Security & Compliance Matrix (20/20 Controls Passing)
 - Built-in diagnostic suite testing all 20 institutional controls:
+  - **Timing Attack Mitigation:** Constant-time `crypto.timingSafeEqual` comparison on all tokens, TOTP codes, and CSRF validations.
+  - Strict Content Security Policy (CSP) & CORS allowlist.
+  - Double-Submit Cookie CSRF protection.
+  - Ephemeral JOSE JWT authentication with HttpOnly cookies.
+  - RFC 6238 TOTP Step-Up MFA (live code generator for judges).
+  - Server-Side Role-Based Access Control (`TREASURY_ADMIN` vs `AUDITOR`).
+  - Strict Input Sanitation via Zod.
+  - Sliding-window in-memory Rate Limiting.
+  - PAN, token, and secret redaction logger.
   - Strict Content Security Policy (CSP) & CORS allowlist.
   - Double-Submit Cookie CSRF protection.
   - Ephemeral JOSE JWT authentication with HttpOnly cookies.
@@ -185,3 +204,4 @@ Verify by navigating to `/security-audit` or calling `GET /api/security/verify-a
 ---
 
 *LedgerGuard — Built for the PayPal AI Hackathon 2026.*
+
